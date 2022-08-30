@@ -6,7 +6,7 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from models.modules.linear_model import LinearNonspatial, LinearSpatial
+from gpu_spatial_graph_pipeline.models.modules.linear_model import LinearNonspatial, LinearSpatial
 import numpy as np
 
 

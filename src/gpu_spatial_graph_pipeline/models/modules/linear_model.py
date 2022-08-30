@@ -2,7 +2,6 @@
 Linear baseline model.
 """
 import torch.nn as nn
-import torch
 import torch_geometric.nn as geom_nn
 from torch_geometric.utils import to_dense_adj
 

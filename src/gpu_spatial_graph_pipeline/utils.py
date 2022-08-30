@@ -2,17 +2,17 @@ import squidpy as sq
 import torch
 import pandas as pd
 import numpy as np
-from typing import Union, List
+from typing import Sequence, Union
 from torch_geometric.data import Data
 from anndata import AnnData
 import scipy
 import torch.nn as nn
 
 
-def adata2data(adata:AnnData, feature_name)-> Union[Data,List[Data]]:
-    dataset=[]
+def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
+    dataset = []
     if 'library_id' in adata.obs.keys():
-        library_ids=[library_id for library_id in adata.uns["spatial"].keys()]
+        library_ids = [library_id for library_id in adata.uns["spatial"].keys()]
         lib_indices=adata.obs['library_id']==library_ids[0]
         for i in range(len(library_ids)-1):
             lib_indices=pd.concat([lib_indices,adata.obs['library_id']==library_ids[i+1]],axis=1)
@@ -41,7 +41,7 @@ def adata2data(adata:AnnData, feature_name)-> Union[Data,List[Data]]:
                 y=gene_expression,
                 x=cell_type
             )
-        dataset.append(data) 
+        dataset.append(data)
     return dataset
 
 
