@@ -27,15 +27,24 @@
 
 ## Requirements
 
-- TODO
+- pytorch_lightning
+- torch
+- torch_geometric
+- anndata
 
 ## Installation
 
 You can install _Gpu Spatial Graph Pipeline_ via [pip] from [PyPI]:
 
-```console
+<!-- ```console
 $ pip install gpu-spatial-graph-pipeline
+``` -->
+
+For development use
+```console
+$ pip install -e .
 ```
+
 
 ## Usage
 

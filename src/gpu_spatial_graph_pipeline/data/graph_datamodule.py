@@ -1,9 +1,6 @@
 import pytorch_lightning as pl
 from typing import Callable, Optional, Sequence
-import squidpy as sq
-import torch
 from torch_geometric.loader import RandomNodeSampler
-import pandas as pd
 from torch_geometric.data import Data
 from anndata import AnnData
 
@@ -28,7 +25,7 @@ class GraphDataModule(pl.LightningDataModule):
         self.data = self.adata2data_fn(self.adata)
 
     def train_dataloader(self):
-        return DataL(self.data, num_parts=self.batch_size,
+        return RandomNodeSampler(self.data, num_parts=self.batch_size,
                                  num_workers=self.num_workers
                                  )
 

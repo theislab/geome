@@ -10,9 +10,9 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from models.modules.gnn_model import GNNModel
-from models.modules.mlp_model import MLPModel
-from utils import init_weights
+from gpu_spatial_graph_pipeline.models.modules.gnn_model import GNNModel
+from gpu_spatial_graph_pipeline.models.modules.mlp_model import MLPModel
+from gpu_spatial_graph_pipeline.utils import init_weights
 from torch_geometric.data import Batch
 
 
