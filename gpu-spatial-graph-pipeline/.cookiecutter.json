@@ -1,0 +1,13 @@
+{
+  "_template": "gh:cjolowicz/cookiecutter-hypermodern-python",
+  "author": "-",
+  "copyright_year": "2022",
+  "development_status": "Development Status :: 1 - Planning",
+  "email": "-",
+  "friendly_name": "Gpu Spatial Graph Pipeline",
+  "github_user": "syelman",
+  "license": "MIT",
+  "package_name": "gpu_spatial_graph_pipeline",
+  "project_name": "gpu-spatial-graph-pipeline",
+  "version": "0.0.0"
+}
