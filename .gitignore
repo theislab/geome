@@ -134,3 +134,6 @@ dmypy.json
 # PL Logs
 lightning_logs/**
 examples/lightning_logs/**
+
+# VSCODE
+.vscode/**
