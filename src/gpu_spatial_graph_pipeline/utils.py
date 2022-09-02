@@ -9,7 +9,7 @@ import scipy
 import torch.nn as nn
 
 
-def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
+def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
     dataset = []
     if 'library_id' in adata.obs.keys():
         library_ids = [
@@ -28,8 +28,17 @@ def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
         nodes1, nodes2 = spatial_connectivities.nonzero()
         edge_index = torch.vstack([torch.from_numpy(nodes1).to(
             torch.long), torch.from_numpy(nodes2).to(torch.long)])
-        cell_type = torch.from_numpy(pd.get_dummies(
-            adata.obs[feature_name][lib_indices[library_id]]).to_numpy())
+        if len(feature_names)>1:
+            cell_type = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names[0]][lib_indices[library_id]]).to_numpy())
+            domain = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names[1]][lib_indices[library_id]]).to_numpy())
+            features=torch.cat([cell_type,domain],dim=1)
+        else:
+            features = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names]).to_numpy())
+
+
         X = adata.X[lib_indices[library_id]]
         if scipy.sparse.issparse(X):
             coo = X.tocoo()
@@ -46,7 +55,7 @@ def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
         data = Data(
             edge_index=edge_index,
             y=gene_expression,
-            x=cell_type
+            x=features,
         )
         dataset.append(data)
     return dataset
