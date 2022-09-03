@@ -13,7 +13,8 @@ class GraphAnnDataModule(pl.LightningDataModule):
         adata2data_fn: Callable[[AnnData], Sequence[Data]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
-    ):
+    ):  
+
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers

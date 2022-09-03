@@ -10,7 +10,21 @@ import torch.nn as nn
 
 
 def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
+    """Function that takes in input an anndata object and returns a Pytorch Geometric (PyG) data object or a sequence thereof. 
+    Each data object represents a graph of an image stored in the anndata object.
+
+
+    :param adata: Anndata object storing the images to be trained on
+    :type adata: AnnData
+    :param feature_names: The feature names to be used for training, extracted from anndata.obs
+    :type feature_names: tuple
+    :return: PyG data object or sequence thereof if more than one image is stored in the anndata object
+    :rtype: Union[Data, Sequence[Data]]
+    """
+
     dataset = []
+
+    #Set cases for when one or more images are to be extracted from anndata
     if 'library_id' in adata.obs.keys():
         library_ids = [
             library_id for library_id in adata.uns["spatial"].keys()]
