@@ -9,8 +9,22 @@ import scipy
 import torch.nn as nn
 
 
-def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
+def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
+    """Function that takes in input an anndata object and returns a Pytorch Geometric (PyG) data object or a sequence thereof. 
+    Each data object represents a graph of an image stored in the anndata object.
+
+
+    :param adata: Anndata object storing the images to be trained on
+    :type adata: AnnData
+    :param feature_names: The feature names to be used for training, extracted from anndata.obs
+    :type feature_names: tuple
+    :return: PyG data object or sequence thereof if more than one image is stored in the anndata object
+    :rtype: Union[Data, Sequence[Data]]
+    """
+
     dataset = []
+
+    #Set cases for when one or more images are to be extracted from anndata
     if 'library_id' in adata.obs.keys():
         library_ids = [
             library_id for library_id in adata.uns["spatial"].keys()]
@@ -28,8 +42,17 @@ def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
         nodes1, nodes2 = spatial_connectivities.nonzero()
         edge_index = torch.vstack([torch.from_numpy(nodes1).to(
             torch.long), torch.from_numpy(nodes2).to(torch.long)])
-        cell_type = torch.from_numpy(pd.get_dummies(
-            adata.obs[feature_name][lib_indices[library_id]]).to_numpy())
+        if len(feature_names)>1:
+            cell_type = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names[0]][lib_indices[library_id]]).to_numpy())
+            domain = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names[1]][lib_indices[library_id]]).to_numpy())
+            features=torch.cat([cell_type,domain],dim=1)
+        else:
+            features = torch.from_numpy(pd.get_dummies(
+                adata.obs[feature_names]).to_numpy())
+
+
         X = adata.X[lib_indices[library_id]]
         if scipy.sparse.issparse(X):
             coo = X.tocoo()
@@ -46,7 +69,7 @@ def adata2data(adata: AnnData, feature_name) -> Union[Data, Sequence[Data]]:
         data = Data(
             edge_index=edge_index,
             y=gene_expression,
-            x=cell_type
+            x=features,
         )
         dataset.append(data)
     return dataset

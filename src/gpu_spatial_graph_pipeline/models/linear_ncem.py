@@ -6,20 +6,21 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from gpu_spatial_graph_pipeline.models.modules.linear_model import LinearNonspatial, LinearSpatial
+from models.modules.linear_model import LinearNonspatial, LinearSpatial
 import numpy as np
 
 
 
 class LinearNCEM(pl.LightningModule):
-    def __init__(self, type="spatial", use_node_scale=False, **model_kwargs):
+    def __init__(self, model_type="spatial", use_node_scale=False, **model_kwargs):
         super().__init__()
         # Saving hyperparameters
         self.save_hyperparameters(model_kwargs)
 
         self.use_node_scale=use_node_scale 
+        self.model_type=model_type
 
-        if type.casefold() =="spatial":
+        if self.model_type.casefold() =="spatial":
 
             self.model_sigma = LinearSpatial(
                 in_channels=self.hparams.in_channels,
@@ -30,7 +31,7 @@ class LinearNCEM(pl.LightningModule):
                 out_channels=self.hparams.out_channels
             )
 
-        elif type.casefold() =="nonspatial":
+        elif self.model_type.casefold() =="nonspatial":
 
             self.model_sigma = LinearNonspatial(
                 in_channels=self.hparams.in_channels,
@@ -56,9 +57,15 @@ class LinearNCEM(pl.LightningModule):
         return parent_parser
 
     def forward(self, data):
-        x, edge_index = data.x.float(), data.edge_index
-        mu = self.model_mu(x, edge_index)
-        sigma = torch.exp(self.model_sigma(x, edge_index))
+        if self.model_type.casefold() =="spatial":
+            x, edge_index = data.x.float(), data.edge_index
+            mu = self.model_mu(x, edge_index)
+            sigma = torch.exp(self.model_sigma(x, edge_index))
+        
+        elif self.model_type.casefold() =="nonspatial":
+            x = data.x.float()
+            mu = self.model_mu(x)
+            sigma = torch.exp(self.model_sigma(x))
 
         #scale by sf
         if self.use_node_scale:
