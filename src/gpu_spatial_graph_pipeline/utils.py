@@ -10,7 +10,7 @@ import torch.nn as nn
 
 
 def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
-    """Function that takes in input an anndata object and returns a Pytorch Geometric (PyG) data object or a sequence thereof. 
+    """Function that takes in input an anndata object and returns a Pytorch Geometric (PyG) data object or a sequence thereof.
     Each data object represents a graph of an image stored in the anndata object.
 
 
@@ -24,34 +24,49 @@ def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
 
     dataset = []
 
-    #Set cases for when one or more images are to be extracted from anndata
-    if 'library_id' in adata.obs.keys():
-        library_ids = [
-            library_id for library_id in adata.uns["spatial"].keys()]
-        lib_indices = adata.obs['library_id'] == library_ids[0]
-        for i in range(len(library_ids)-1):
+    # Set cases for when one or more images are to be extracted from anndata
+    if "library_id" in adata.obs.keys():
+        library_ids = [library_id for library_id in adata.uns["spatial"].keys()]
+        lib_indices = adata.obs["library_id"] == library_ids[0]
+        for i in range(len(library_ids) - 1):
             lib_indices = pd.concat(
-                [lib_indices, adata.obs['library_id'] == library_ids[i+1]], axis=1)
+                [lib_indices, adata.obs["library_id"] == library_ids[i + 1]], axis=1
+            )
         lib_indices.columns = library_ids
     else:
-        lib_indices = pd.DataFrame(data=range(len(adata.obs)), columns=[
-                                   ""])  # [range(len(adata.obs))]
+        lib_indices = pd.DataFrame(
+            data=range(len(adata.obs)), columns=[""]
+        )  # [range(len(adata.obs))]
     for library_id in lib_indices.columns:
         spatial_connectivities, _ = sq.gr.spatial_neighbors(
-            adata[lib_indices[library_id]], coord_type="generic", key_added=library_id + 'spatial', copy=True)
+            adata[lib_indices[library_id]],
+            coord_type="generic",
+            key_added=library_id + "spatial",
+            copy=True,
+        )
         nodes1, nodes2 = spatial_connectivities.nonzero()
-        edge_index = torch.vstack([torch.from_numpy(nodes1).to(
-            torch.long), torch.from_numpy(nodes2).to(torch.long)])
-        if len(feature_names)>1:
-            cell_type = torch.from_numpy(pd.get_dummies(
-                adata.obs[feature_names[0]][lib_indices[library_id]]).to_numpy())
-            domain = torch.from_numpy(pd.get_dummies(
-                adata.obs[feature_names[1]][lib_indices[library_id]]).to_numpy())
-            features=torch.cat([cell_type,domain],dim=1)
+        edge_index = torch.vstack(
+            [
+                torch.from_numpy(nodes1).to(torch.long),
+                torch.from_numpy(nodes2).to(torch.long),
+            ]
+        )
+        if len(feature_names) > 1:
+            cell_type = torch.from_numpy(
+                pd.get_dummies(
+                    adata.obs[feature_names[0]][lib_indices[library_id]]
+                ).to_numpy()
+            )
+            domain = torch.from_numpy(
+                pd.get_dummies(
+                    adata.obs[feature_names[1]][lib_indices[library_id]]
+                ).to_numpy()
+            )
+            features = torch.cat([cell_type, domain], dim=1)
         else:
-            features = torch.from_numpy(pd.get_dummies(
-                adata.obs[feature_names]).to_numpy())
-
+            features = torch.from_numpy(
+                pd.get_dummies(adata.obs[feature_names]).to_numpy()
+            )
 
         X = adata.X[lib_indices[library_id]]
         if scipy.sparse.issparse(X):
@@ -62,7 +77,8 @@ def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
             v = torch.FloatTensor(values)
             shape = coo.shape
             gene_expression = torch.sparse.FloatTensor(
-                i, v, torch.Size(shape)).to_dense()
+                i, v, torch.Size(shape)
+            ).to_dense()
         else:
             gene_expression = torch.from_numpy(adata.X)
 
@@ -74,12 +90,13 @@ def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
         dataset.append(data)
     return dataset
 
+
 def to_one_data(adata: AnnData, feature_names) -> Data:
     return [adata2data(adata, feature_names)[0]]
 
 
 def init_weights(m):
     if isinstance(m, nn.Linear):
-        torch.nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+        torch.nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
         if m.bias is not None:
             m.bias.data.fill_(0.01)
