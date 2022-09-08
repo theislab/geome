@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 from typing import Callable, Optional, Sequence, Union
-from torch_geometric.loader import RandomNodeSampler
+from torch_geometric.loader import NeighborLoader, RandomNodeSampler
 from torch_geometric.data import Data, Batch
 from torch_geometric.transforms import RandomNodeSplit  # AddTrainValTestMask
 from anndata import AnnData
@@ -33,19 +33,27 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.data = self.data[0]
         self.transform = RandomNodeSplit(
             split="train_rest",
-            num_val=self.data.num_nodes * 0.05,
-            num_test=self.data.num_nodes * 0.1,
+            num_val=min(int(self.data.num_nodes * 0.1), 1),
+            num_test=min(int(self.data.num_nodes * 0.05), 1),
         )
 
         self.data = self.transform(self.data)
 
+        def _create_nl(input_nodes, shuffle=True):
+            return NeighborLoader(
+                self.data,
+                # Sample 30 neighbors for each node for 2 iterations
+                num_neighbors=[30] * 2,  # TODO: Add params
+                # Use a batch size of 128 for sampling training nodes
+                batch_size=self.batch_size,
+                input_nodes=input_nodes,
+                shuffle=shuffle,
+            )
+
         if stage == "fit" or stage is None:
-            self._train_dataloader = RandomNodeSampler(
-                self.data, num_parts=self.batch_size, num_workers=self.num_workers
-            )
-            self._val_dataloader = RandomNodeSampler(
-                self.data, num_parts=self.batch_size, num_workers=self.num_workers
-            )
+            self._train_dataloader = _create_nl(self.data.train_mask)
+            self._val_dataloader = _create_nl(self.data.val_mask, shuffle=False)
+
         if stage == "test" or stage is None:
             self._test_dataloader = RandomNodeSampler(
                 self.data, num_parts=self.batch_size, num_workers=self.num_workers
