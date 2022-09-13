@@ -13,7 +13,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
     def __init__(
         self,
         adata: AnnData = None,
-        feature_names: tuple = None,
         adata2data_fn: Callable[[AnnData], Union[Sequence[Data], Batch]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
@@ -25,7 +24,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.adata2data_fn = adata2data_fn
         self.adata = adata
-        self.feature_names=feature_names
         if learning_type not in VALID_SPLIT:
             raise ValueError("Learning type must be one of %r." % VALID_SPLIT)
         self.learning_type = learning_type
@@ -48,6 +46,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 batch_size=self.batch_size,
                 input_nodes=self.data.train_mask,
                 shuffle=True,
+                num_workers=self.num_workers
             )
             self._val_dataloader = NeighborLoader(
                 self.data,
@@ -55,6 +54,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 batch_size=self.batch_size,
                 input_nodes=self.data.val_mask,
                 shuffle=False,
+                num_workers=self.num_workers
             )
 
         if stage == "test" or stage is None:
@@ -64,6 +64,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 batch_size=self.batch_size,
                 input_nodes=self.data.test_mask,
                 shuffle=False,
+                num_workers=self.num_workers
             )
 
     def _graphwise_setup(self, stage: Optional[str]):
@@ -83,7 +84,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # TODO: Splitting
         # stage = "train" if not stage else stage
 
-        self.data = self.adata2data_fn(self.adata, self.feature_names)
+        self.data = self.adata2data_fn(self.adata)
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
 
