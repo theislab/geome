@@ -114,8 +114,8 @@ class LinearNCEM(pl.LightningModule):
         if type(batch) == list:
             batch = batch[0]
         mu, sigma = self.forward(batch)
-        val_loss = self.loss_module(mu[0], batch.y[0], sigma[0])
-        val_r2_score = r2_score(batch.y.cpu()[0], mu.cpu()[0])
+        val_loss = self.loss_module(mu[:self.batch_size], batch.y[:self.batch_size], sigma[:self.batch_size])
+        val_r2_score = r2_score(batch.y.cpu()[:self.batch_size], mu.cpu()[:self.batch_size])
         self.log("val_r2_score", val_r2_score, prog_bar=True)
         self.log("val_loss", val_loss, prog_bar=True)
 
@@ -123,7 +123,7 @@ class LinearNCEM(pl.LightningModule):
         if type(batch) == list:
             batch = batch[0]
         mu, sigma = self.forward(batch)
-        test_loss = self.loss_module(mu[0], batch.y[0], sigma[0])
-        test_r2_score = r2_score(batch.y.cpu()[0], mu.cpu()[0])
+        test_loss = self.loss_module(mu[:self.batch_size], batch.y[:self.batch_size], sigma[:self.batch_size])
+        test_r2_score = r2_score(batch.y.cpu()[:self.batch_size], mu.cpu()[:self.batch_size])
         self.log("test_r2_score", test_r2_score, prog_bar=True)
         self.log("test_loss", test_loss, prog_bar=True)

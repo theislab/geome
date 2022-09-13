@@ -35,8 +35,8 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.data = Batch.from_data_list(self.data)
         self.transform = RandomNodeSplit(
             split="train_rest",
-            num_val=min(int(self.data.num_nodes * 0.1), 1),
-            num_test=min(int(self.data.num_nodes * 0.05), 1),
+            num_val=max(int(self.data.num_nodes * 0.1), 1),
+            num_test=max(int(self.data.num_nodes * 0.05), 1),
         )
 
         self.data = self.transform(self.data)
