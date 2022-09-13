@@ -10,6 +10,7 @@ from ..models.modules.linear_model import LinearNonspatial, LinearSpatial
 import numpy as np
 from torch_geometric.data import Batch
 
+
 class LinearNCEM(pl.LightningModule):
     def __init__(self, model_type="spatial", use_node_scale=False, **model_kwargs):
         super().__init__()
@@ -106,24 +107,38 @@ class LinearNCEM(pl.LightningModule):
         if type(batch) == list:
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        loss = self.loss_module(mu[:self.batch_size], batch.y[:self.batch_size], sigma[:self.batch_size])
-        self.log("train_loss", loss)
+        loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        self.log("train_loss", loss, batch_size=self.batch_size)
         return loss
 
     def validation_step(self, batch, _):
         if type(batch) == list:
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        val_loss = self.loss_module(mu[:self.batch_size], batch.y[:self.batch_size], sigma[:self.batch_size])
-        val_r2_score = r2_score(batch.y.cpu()[:self.batch_size], mu.cpu()[:self.batch_size])
-        self.log("val_r2_score", val_r2_score, prog_bar=True)
-        self.log("val_loss", val_loss, prog_bar=True)
+        val_loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        val_r2_score = r2_score(
+            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
+        )
+        self.log(
+            "val_r2_score", val_r2_score, prog_bar=True, batch_size=self.batch_size
+        )
+        self.log("val_loss", val_loss, prog_bar=True, batch_size=self.batch_size)
 
     def test_step(self, batch, _):
         if type(batch) == list:
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        test_loss = self.loss_module(mu[:self.batch_size], batch.y[:self.batch_size], sigma[:self.batch_size])
-        test_r2_score = r2_score(batch.y.cpu()[:self.batch_size], mu.cpu()[:self.batch_size])
-        self.log("test_r2_score", test_r2_score, prog_bar=True)
-        self.log("test_loss", test_loss, prog_bar=True)
+        test_loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        test_r2_score = r2_score(
+            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
+        )
+        self.log(
+            "test_r2_score", test_r2_score, prog_bar=True, batch_size=self.batch_size
+        )
+        self.log("test_loss", test_loss, prog_bar=True, batch_size=self.batch_size)
