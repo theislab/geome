@@ -91,10 +91,6 @@ def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
     return dataset
 
 
-def to_one_data(adata: AnnData, feature_names) -> Data:
-    return [adata2data(adata, feature_names)[0]]
-
-
 def init_weights(m):
     if isinstance(m, nn.Linear):
         torch.nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
