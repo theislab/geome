@@ -13,6 +13,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
     def __init__(
         self,
         adata: AnnData = None,
+        feature_names: tuple = None,
         adata2data_fn: Callable[[AnnData], Union[Sequence[Data], Batch]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
@@ -24,13 +25,14 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.adata2data_fn = adata2data_fn
         self.adata = adata
+        self.feature_names=feature_names
         if learning_type not in VALID_SPLIT:
             raise ValueError("Learning type must be one of %r." % VALID_SPLIT)
         self.learning_type = learning_type
 
     def _nodewise_setup(self, stage: Optional[str]):
 
-        self.data = self.data[0]
+        self.data = Batch.from_data_list(self.data)
         self.transform = RandomNodeSplit(
             split="train_rest",
             num_val=min(int(self.data.num_nodes * 0.1), 1),
@@ -39,24 +41,29 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
         self.data = self.transform(self.data)
 
-        def _create_nl(input_nodes, shuffle=True):
-            return NeighborLoader(
+        if stage == "fit" or stage is None:
+            self._train_dataloader = NeighborLoader(
                 self.data,
-                # Sample 30 neighbors for each node for 2 iterations
-                num_neighbors=[30] * 2,  # TODO: Add params
-                # Use a batch size of 128 for sampling training nodes
+                num_neighbors=[-1],
                 batch_size=self.batch_size,
-                input_nodes=input_nodes,
-                shuffle=shuffle,
+                input_nodes=self.data.train_mask,
+                shuffle=True,
+            )
+            self._val_dataloader = NeighborLoader(
+                self.data,
+                num_neighbors=[-1],
+                batch_size=self.batch_size,
+                input_nodes=self.data.val_mask,
+                shuffle=False,
             )
 
-        if stage == "fit" or stage is None:
-            self._train_dataloader = _create_nl(self.data.train_mask)
-            self._val_dataloader = _create_nl(self.data.val_mask, shuffle=False)
-
         if stage == "test" or stage is None:
-            self._test_dataloader = RandomNodeSampler(
-                self.data, num_parts=self.batch_size, num_workers=self.num_workers
+            self._test_dataloader = NeighborLoader(
+                self.data,
+                num_neighbors=[-1],
+                batch_size=self.batch_size,
+                input_nodes=self.data.test_mask,
+                shuffle=False,
             )
 
     def _graphwise_setup(self, stage: Optional[str]):
@@ -76,7 +83,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # TODO: Splitting
         # stage = "train" if not stage else stage
 
-        self.data = self.adata2data_fn(self.adata)
+        self.data = self.adata2data_fn(self.adata, self.feature_names)
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
 
@@ -86,10 +93,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
             self._graphwise_setup(stage)
 
         else:
-            if len(self.data) != 1:
-                raise RuntimeError(
-                    "Currently not good for nodewise learning, should be changed"
-                )
             self._nodewise_setup(stage)
 
     def train_dataloader(self):
