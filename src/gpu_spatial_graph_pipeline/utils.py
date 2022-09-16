@@ -81,11 +81,15 @@ def adata2data(adata: AnnData, feature_names) -> Union[Data, Sequence[Data]]:
             ).to_dense()
         else:
             gene_expression = torch.from_numpy(adata.X)
+        
+        #Create design matrix for linear model
+        Xd = design_matrix(torch.Tensor(spatial_connectivities.todense()), cell_type.float(), domain)
 
         data = Data(
             edge_index=edge_index,
             y=gene_expression,
             x=features,
+            Xd=Xd
         )
         dataset.append(data)
     return dataset
@@ -100,7 +104,7 @@ def init_weights(m):
 def design_matrix(A,Xl,Xc):
   N,L = Xl.shape
   Xs = (A @ Xl > 0).to(torch.float) # N x L
-  Xts = torch.einsum('bp,br->bpr', Xs, Xl).reshape((N,L*L)) #todo binarize this
+  Xts = (torch.einsum('bp,br->bpr', Xs, Xl).reshape((N,L*L)) > 0).to(torch.float)
   Xd = torch.hstack((Xl,Xts,Xc))
   return Xd
 
