@@ -74,9 +74,9 @@ class LinearNCEM(pl.LightningModule):
     def forward(self, data):
         self.batch_size = data.batch_size
         if self.model_type.casefold() == "spatial":
-            x, edge_index = data.x.float(), data.edge_index
-            mu = self.model_mu(x, edge_index)
-            sigma = torch.exp(self.model_sigma(x, edge_index))
+            x = data.Xd
+            mu = self.model_mu(x)
+            sigma = torch.exp(self.model_sigma(x))
 
         elif self.model_type.casefold() == "nonspatial":
             x = data.x.float()

@@ -3,9 +3,6 @@ Linear baseline model.
 """
 import torch
 import torch.nn as nn
-import torch_geometric.nn as geom_nn
-from torch_geometric.utils import to_dense_adj
-from gpu_spatial_graph_pipeline.utils import design_matrix
 
 # Linear NCEM spatial and nonspatial models as defined in https://www.biorxiv.org/content/10.1101/2021.07.11.451750v1
 
@@ -57,26 +54,10 @@ class LinearSpatial(nn.Module):
             self.linear = nn.Linear(self.num_features, self.num_genes)
 
 
-    def forward(self, x, edge_index):
+    def forward(self, x):
         """
         Inputs:
             x - Input features per node
-            edge_index - input edge indices. Shape 2 x 2*(No. edges)
         """
 
-        X_cell_type = x[:, 0 : self.num_cell_types]
-
-        if self.mult_features:
-            X_domain = x[:, self.num_cell_types:]
-
-        num_obs = x.shape[0]
-
-        # Define adjacency matrix
-        adj_matrix = torch.eye(num_obs) + torch.squeeze(to_dense_adj(edge_index))  # NxN
-
-        # Compute design matrix
-
-        Xd = design_matrix(adj_matrix,X_cell_type,X_domain)
-
-
-        return self.linear(Xd)
+        return self.linear(x)
