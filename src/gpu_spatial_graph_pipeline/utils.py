@@ -96,3 +96,11 @@ def init_weights(m):
         torch.nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
         if m.bias is not None:
             m.bias.data.fill_(0.01)
+
+def design_matrix(A,Xl,Xc):
+  N,L = Xl.shape
+  Xs = (A @ Xl > 0).to(torch.float) # N x L
+  Xts = torch.einsum('bp,br->bpr', Xs, Xl).reshape((N,L*L)) #todo binarize this
+  Xd = torch.hstack((Xl,Xts,Xc))
+  return Xd
+
