@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
-from typing import Callable, Optional, Sequence, Union
-from torch_geometric.loader import NeighborLoader, RandomNodeSampler
+from typing import Callable, Literal, Optional, Sequence, Union
+from torch_geometric.loader import NeighborLoader, DataListLoader, RandomNodeSampler
 from torch_geometric.data import Data, Batch
 from torch_geometric.transforms import RandomNodeSplit  # AddTrainValTestMask
 from anndata import AnnData
@@ -16,8 +16,23 @@ class GraphAnnDataModule(pl.LightningDataModule):
         adata2data_fn: Callable[[AnnData], Union[Sequence[Data], Batch]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
-        learning_type: Optional[str] = "nodewise",
+        learning_type: Literal["nodewise", "graphwise"] = "nodewise",
+        has_edge_index: bool = True,
     ):
+        """Manages loading and sampling schemes before loading to GPU.
+
+        Args:
+            adata (AnnData, optional): _description_. Defaults to None.
+            adata2data_fn (Callable[[AnnData], Union[Sequence[Data], Batch]], optional): _description_. Defaults to None.
+            batch_size (int, optional): _description_. Defaults to 1.
+            num_workers (int, optional): _description_. Defaults to 1.
+            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional): _description_. Defaults to "node".
+            has_edge_index (bool, optional): _description_. Defaults to True.
+
+        Raises:
+            ValueError: _description_
+        """
+        # TODO: Fill the docstring
 
         super().__init__()
         self.batch_size = batch_size
@@ -27,11 +42,17 @@ class GraphAnnDataModule(pl.LightningDataModule):
         if learning_type not in VALID_SPLIT:
             raise ValueError("Learning type must be one of %r." % VALID_SPLIT)
         self.learning_type = learning_type
+        self.has_edge_index = has_edge_index
+
+    @staticmethod
+    def _split_by_mask(data):
+        # For example returns the splitted data objects
+        # TODO
+        # return train, test, val
+        raise NotImplementedError("Not implemented yet")
 
     def _nodewise_setup(self, stage: Optional[str]):
-
         self.data = Batch.from_data_list(self.data)
-
 
         self.transform = RandomNodeSplit(
             split="train_rest",
@@ -41,58 +62,52 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
         self.data = self.transform(self.data)
 
-        if stage == "fit" or stage is None:
-            self._train_dataloader = NeighborLoader(
-                self.data,
-                num_neighbors=[-1],
-                batch_size=self.batch_size,
-                input_nodes=self.data.train_mask,
-                shuffle=True,
-                num_workers=self.num_workers
-            )
-            self._val_dataloader = NeighborLoader(
-                self.data,
-                num_neighbors=[-1],
-                batch_size=self.batch_size,
-                input_nodes=self.data.val_mask,
-                shuffle=False,
-                num_workers=self.num_workers
-            )
+        if self.has_edge_index:
+            if stage == "fit" or stage is None:
+                self._train_dataloader = self._spatial_node_loader(
+                    input_nodes=self.data.train_mask, shuffle=True
+                )
+                self._val_dataloader = self._spatial_node_loader(
+                    input_nodes=self.data.val_mask,
+                )
 
-        if stage == "test" or stage is None:
-            self._test_dataloader = NeighborLoader(
-                self.data,
-                num_neighbors=[-1],
-                batch_size=self.batch_size,
-                input_nodes=self.data.test_mask,
-                shuffle=False,
-                num_workers=self.num_workers
-            )
+            if stage == "test" or stage is None:
+                self._test_dataloader = self._spatial_node_loader(
+                    input_nodes=self.data.test_mask,
+                )
+        else:
+
+            train, val, test = self._split_by_mask(self.data)
+
+            if stage == "fit" or stage is None:
+                self._train_dataloader = self._spatial_node_loader(
+                    data=train, shuffle=True
+                )
+                self._val_dataloader = self._spatial_node_loader(
+                    data=val,
+                )
+
+            if stage == "test" or stage is None:
+                self._test_dataloader = self._spatial_node_loader(
+                    data=test,
+                )
+            raise NotImplementedError("Not implemented yet")
 
     def _graphwise_setup(self, stage: Optional[str]):
-        # self.data.shuffle()
 
-        self.data_old=self.data
-        self.data=[]
-
-        for data in self.data_old:
-            data = Data(
-                edge_index=data.edge_index,
-                y=data.y,
-                x=data.x,
-                Xd=data.Xd,
-                batch_size=self.batch_size
-            )
-        
-            self.data.append(data)
         num_val = int(len(self.data) * 0.05 + 1)
         num_test = int(len(self.data) * 0.01 + 1)
 
         if stage == "fit" or stage is None:
-            self._val_dataloader = self.data[:num_val]
-            self._train_dataloader = self.data[num_val + num_test :]
+            self._train_dataloader = self._graph_loader(
+                data=self.data[num_val + num_test :],
+                shuffle=True,
+            )
+            self._val_dataloader = self._graph_loader(data=self.data[:num_val])
         if stage == "test" or stage is None:
-            self._test_dataloader = self.data[num_val : num_val + num_test]
+            self._test_dataloader = self._graph_loader(
+                data=self.data[num_val : num_val + num_test]
+            )
 
     def setup(self, stage: Optional[str] = None):
         # TODO: Implement each case
@@ -100,7 +115,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # stage = "train" if not stage else stage
 
         self.data = self.adata2data_fn(self.adata)
-        
+
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
 
@@ -121,5 +136,48 @@ class GraphAnnDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return self._test_dataloader
 
+    def _non_spatial_node_loader(self, data, shuffle=False, **kwargs):
+        """If there is no edge_index on the data load random nodes
 
-# TODO: Param check in __init__
+        Args:
+            data (_type_): _description_
+            shuffle (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
+        return RandomNodeSampler(
+            data=data,
+            shuffle=shuffle,
+            num_parts=self.batch_size,
+            num_workers=self.num_workers,
+            **kwargs
+        )
+
+    def _graph_loader(self, data, shuffle=False, **kwargs):
+        """Loads from the list of data
+
+        Args:
+            shuffle (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: _description_
+        """
+        return DataListLoader(
+            dataset=data,
+            shuffle=shuffle,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            **kwargs
+        )
+
+    def _spatial_node_loader(self, input_nodes, shuffle=False, **kwargs):
+        return NeighborLoader(
+            self.data,
+            num_neighbors=[-1],
+            batch_size=self.batch_size,
+            input_nodes=input_nodes,
+            shuffle=shuffle,
+            num_workers=self.num_workers,
+            **kwargs
+        )
