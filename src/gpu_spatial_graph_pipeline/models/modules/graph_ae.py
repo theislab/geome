@@ -12,7 +12,7 @@ class GraphAE(torch.nn.Module):
         super(GraphAE, self).__init__()
         self.conv1 = SAGEConv(in_channels, latent_dim * 2)
         self.conv2 = SAGEConv(latent_dim * 2, latent_dim)
-        self.conv3 = SAGEConv(latent_dim, latent_dim * 2 )
+        self.conv3 = SAGEConv(latent_dim, latent_dim * 2)
         self.conv4 = SAGEConv(latent_dim * 2, out_channels)
 
     def forward(self, x, edge_index):

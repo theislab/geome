@@ -6,7 +6,6 @@ import torch.nn as nn
 
 
 class MLPModel(nn.Module):
-
     def __init__(self, in_channels=34, hidden_dims=None, out_channels=34, dp_rate=0.1):
         """
         Inputs:
@@ -24,7 +23,7 @@ class MLPModel(nn.Module):
                 layers += [
                     nn.Linear(prev_dim, dim),
                     nn.ReLU(inplace=True),
-                    nn.Dropout(dp_rate)
+                    nn.Dropout(dp_rate),
                 ]
                 prev_dim = dim
 

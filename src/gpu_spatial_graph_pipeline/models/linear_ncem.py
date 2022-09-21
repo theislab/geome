@@ -6,8 +6,9 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from gpu_spatial_graph_pipeline.models.modules.linear_model import LinearNonspatial, LinearSpatial
+from ..models.modules.linear_model import LinearNonspatial, LinearSpatial
 import numpy as np
+from torch_geometric.data import Batch
 
 
 class LinearNCEM(pl.LightningModule):
@@ -16,63 +17,79 @@ class LinearNCEM(pl.LightningModule):
         # Saving hyperparameters
         self.save_hyperparameters(model_kwargs)
 
-        self.use_node_scale=use_node_scale 
-        self.model_type=model_type
+        self.use_node_scale = use_node_scale
+        self.model_type = model_type
 
-        if self.model_type.casefold() =="spatial":
+        if self.model_type.casefold() == "spatial":
 
             self.model_sigma = LinearSpatial(
                 in_channels=self.hparams.in_channels,
-                out_channels=self.hparams.out_channels
+                out_channels=self.hparams.out_channels,
             )
             self.model_mu = LinearSpatial(
                 in_channels=self.hparams.in_channels,
-                out_channels=self.hparams.out_channels
+                out_channels=self.hparams.out_channels,
             )
 
-        elif self.model_type.casefold() =="nonspatial":
+        elif self.model_type.casefold() == "nonspatial":
 
             self.model_sigma = LinearNonspatial(
                 in_channels=self.hparams.in_channels,
-                out_channels=self.hparams.out_channels
+                out_channels=self.hparams.out_channels,
             )
             self.model_mu = LinearNonspatial(
                 in_channels=self.hparams.in_channels,
-                out_channels=self.hparams.out_channels
+                out_channels=self.hparams.out_channels,
             )
         else:
-            raise ValueError("An invalid model type has been used as input. Valid types: 'spatial' or 'nonspatial'")
+            raise ValueError(
+                "An invalid model type has been used as input. Valid types: 'spatial' or 'nonspatial'"
+            )
 
         self.loss_module = nn.GaussianNLLLoss(eps=1e-5)
-
 
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = parent_parser.add_argument_group("LinearNCEM")
-        parser.add_argument("--lr", type=float, default=0.1, help="the initial learning rate")
-        parser.add_argument("--type", type=str, default="spatial", help="type of linear model to use (spatial or nonspatial)")
-        parser.add_argument("--use_node_scale", type=bool, default=True, help="whether to use scale factor to scale nodes")
-        parser.add_argument("--weight_decay", type=float, default=2e-3, help="the weight decay")
+        parser.add_argument(
+            "--lr", type=float, default=0.1, help="the initial learning rate"
+        )
+        parser.add_argument(
+            "--type",
+            type=str,
+            default="spatial",
+            help="type of linear model to use (spatial or nonspatial)",
+        )
+        parser.add_argument(
+            "--use_node_scale",
+            type=bool,
+            default=True,
+            help="whether to use scale factor to scale nodes",
+        )
+        parser.add_argument(
+            "--weight_decay", type=float, default=2e-3, help="the weight decay"
+        )
         return parent_parser
 
     def forward(self, data):
-        if self.model_type.casefold() =="spatial":
-            x, edge_index = data.x.float(), data.edge_index
-            mu = self.model_mu(x, edge_index)
-            sigma = torch.exp(self.model_sigma(x, edge_index))
-        
-        elif self.model_type.casefold() =="nonspatial":
+        self.batch_size = data.batch_size
+        if self.model_type.casefold() == "spatial":
+            x = data.Xd
+            mu = self.model_mu(x)
+            sigma = torch.exp(self.model_sigma(x))
+
+        elif self.model_type.casefold() == "nonspatial":
             x = data.x.float()
             mu = self.model_mu(x)
             sigma = torch.exp(self.model_sigma(x))
 
-        #scale by sf
+        # scale by sf
         if self.use_node_scale:
-            sf=torch.unsqueeze(data.sf,1) #Nx1
-            mu=sf*mu
-            sigma=sf*sigma
+            sf = torch.unsqueeze(data.sf, 1)  # Nx1
+            mu = sf * mu
+            sigma = sf * sigma
 
-        #clip output
+        # clip output
         bound = 60.0
         torch.clamp(mu, min=-np.exp(bound), max=np.exp(bound))
         torch.clamp(sigma, min=-bound, max=bound)
@@ -87,27 +104,41 @@ class LinearNCEM(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, _):
-        if type(batch)==list:
-            batch=batch[0]
+        if type(batch) == list:
+            batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        loss = self.loss_module(mu, batch.y, sigma)
-        self.log('train_loss', loss)
+        loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        self.log("train_loss", loss, batch_size=self.batch_size)
         return loss
 
     def validation_step(self, batch, _):
-        if type(batch)==list:
-            batch=batch[0]
+        if type(batch) == list:
+            batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        val_loss = self.loss_module(mu, batch.y, sigma)
-        val_r2_score = r2_score(batch.y.cpu(), mu.cpu())
-        self.log('val_r2_score', val_r2_score, prog_bar=True)
-        self.log('val_loss', val_loss, prog_bar=True)
+        val_loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        val_r2_score = r2_score(
+            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
+        )
+        self.log(
+            "val_r2_score", val_r2_score, prog_bar=True, batch_size=self.batch_size
+        )
+        self.log("val_loss", val_loss, prog_bar=True, batch_size=self.batch_size)
 
     def test_step(self, batch, _):
-        if type(batch)==list:
-            batch=batch[0]
+        if type(batch) == list:
+            batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
-        test_loss = self.loss_module(mu, batch.y, sigma)
-        test_r2_score = r2_score(batch.y.cpu(), mu.cpu())
-        self.log('test_r2_score', test_r2_score, prog_bar=True)
-        self.log('test_loss', test_loss, prog_bar=True)
+        test_loss = self.loss_module(
+            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
+        )
+        test_r2_score = r2_score(
+            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
+        )
+        self.log(
+            "test_r2_score", test_r2_score, prog_bar=True, batch_size=self.batch_size
+        )
+        self.log("test_loss", test_loss, prog_bar=True, batch_size=self.batch_size)
