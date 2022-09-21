@@ -26,8 +26,11 @@ class GraphAnnDataModule(pl.LightningDataModule):
             adata2data_fn (Callable[[AnnData], Union[Sequence[Data], Batch]], optional): _description_. Defaults to None.
             batch_size (int, optional): _description_. Defaults to 1.
             num_workers (int, optional): _description_. Defaults to 1.
-            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional): _description_. Defaults to "node".
-            has_edge_index (bool, optional): _description_. Defaults to True.
+            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional): 
+                if graphwise batch_size means number of graphs. Defaults to "nodewise".
+            has_edge_index (bool, optional):
+                Whether edge_index attribute is expected on the computed
+                data object . Defaults to True.
 
         Raises:
             ValueError: _description_
