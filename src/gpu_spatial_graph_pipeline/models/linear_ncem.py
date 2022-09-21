@@ -104,7 +104,7 @@ class LinearNCEM(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, _):
-        if type(batch) == list:
+        if type(batch) == list or type(batch) == tuple:
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
         loss = self.loss_module(
@@ -113,8 +113,8 @@ class LinearNCEM(pl.LightningModule):
         self.log("train_loss", loss, batch_size=self.batch_size)
         return loss
 
-    def validation_step(self, batch, _):
-        if type(batch) == list:
+    def validation_step(self, batch, batch_idx, dataset_idx):
+        if type(batch) == list or type(batch) == tuple:
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
         val_loss = self.loss_module(

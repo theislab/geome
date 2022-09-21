@@ -31,6 +31,8 @@ class GraphAnnDataModule(pl.LightningDataModule):
     def _nodewise_setup(self, stage: Optional[str]):
 
         self.data = Batch.from_data_list(self.data)
+
+
         self.transform = RandomNodeSplit(
             split="train_rest",
             num_val=max(int(self.data.num_nodes * 0.1), 1),
@@ -70,14 +72,27 @@ class GraphAnnDataModule(pl.LightningDataModule):
     def _graphwise_setup(self, stage: Optional[str]):
         # self.data.shuffle()
 
+        self.data_old=self.data
+        self.data=[]
+
+        for data in self.data_old:
+            data = Data(
+                edge_index=data.edge_index,
+                y=data.y,
+                x=data.x,
+                Xd=data.Xd,
+                batch_size=self.batch_size
+            )
+        
+            self.data.append(data)
         num_val = int(len(self.data) * 0.05 + 1)
         num_test = int(len(self.data) * 0.01 + 1)
 
         if stage == "fit" or stage is None:
-            self._val_data_loader = self.data[:num_val]
-            self._train_data_loader = self.data[num_val + num_test :]
+            self._val_dataloader = self.data[:num_val]
+            self._train_dataloader = self.data[num_val + num_test :]
         if stage == "test" or stage is None:
-            self._test_data_loader = self.data[num_val : num_val + num_test]
+            self._test_dataloader = self.data[num_val : num_val + num_test]
 
     def setup(self, stage: Optional[str] = None):
         # TODO: Implement each case
@@ -85,6 +100,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # stage = "train" if not stage else stage
 
         self.data = self.adata2data_fn(self.adata)
+        
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
 
