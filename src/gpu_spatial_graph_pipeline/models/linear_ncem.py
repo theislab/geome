@@ -91,8 +91,8 @@ class LinearNCEM(pl.LightningModule):
 
         # clip output
         bound = 60.0
-        torch.clamp(mu, min=-np.exp(bound), max=np.exp(bound))
-        torch.clamp(sigma, min=-bound, max=bound)
+        mu = torch.clamp(mu, min=-np.exp(bound), max=np.exp(bound))
+        sigma = torch.clamp(sigma, min=-bound, max=bound)
         return mu, sigma
 
     def configure_optimizers(self):
