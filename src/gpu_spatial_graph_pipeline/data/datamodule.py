@@ -1,12 +1,12 @@
 import pytorch_lightning as pl
 from typing import Callable, Literal, Optional, Sequence, Union
-from torch_geometric.loader import NeighborLoader, DataListLoader, RandomNodeSampler
+from torch_geometric.loader import NeighborLoader, DataListLoader
 from torch_geometric.data import Data, Batch
-from torch_geometric.transforms import RandomNodeSplit  # AddTrainValTestMask
+from torch_geometric.transforms import RandomNodeSplit
 from anndata import AnnData
 
 VALID_STAGE = {"fit", "test", None}
-VALID_SPLIT = {"nodewise", "graphwise"}
+VALID_SPLIT = {"node", "graph"}
 
 
 class GraphAnnDataModule(pl.LightningDataModule):
@@ -16,8 +16,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         adata2data_fn: Callable[[AnnData], Union[Sequence[Data], Batch]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
-        learning_type: Literal["nodewise", "graphwise"] = "nodewise",
-        has_edge_index: bool = True,
+        learning_type: Literal["node", "graph"] = "node",
     ):
         """Manages loading and sampling schemes before loading to GPU.
 
@@ -26,11 +25,16 @@ class GraphAnnDataModule(pl.LightningDataModule):
             adata2data_fn (Callable[[AnnData], Union[Sequence[Data], Batch]], optional): _description_. Defaults to None.
             batch_size (int, optional): _description_. Defaults to 1.
             num_workers (int, optional): _description_. Defaults to 1.
-            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional): 
-                if graphwise batch_size means number of graphs. Defaults to "nodewise".
-            has_edge_index (bool, optional):
-                Whether edge_index attribute is expected on the computed
-                data object . Defaults to True.
+            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional):
+                If graph is selected batch_size means number of graphs and the adata2data_fn
+                is expected to give a list of Data.
+                If node is selected batch_size means the number of nodes
+                and adata2data_fn is
+                expected to give a list of Data objects
+                with edge_index attribute.
+
+                 Defaults to "nodewise".
+
 
         Raises:
             ValueError: _description_
@@ -45,14 +49,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
         if learning_type not in VALID_SPLIT:
             raise ValueError("Learning type must be one of %r." % VALID_SPLIT)
         self.learning_type = learning_type
-        self.has_edge_index = has_edge_index
-
-    @staticmethod
-    def _split_by_mask(data):
-        # For example returns the splitted data objects
-        # TODO
-        # return train, test, val
-        raise NotImplementedError("Not implemented yet")
 
     def _nodewise_setup(self, stage: Optional[str]):
         self.data = Batch.from_data_list(self.data)
@@ -65,36 +61,18 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
         self.data = self.transform(self.data)
 
-        if self.has_edge_index:
-            if stage == "fit" or stage is None:
-                self._train_dataloader = self._spatial_node_loader(
-                    input_nodes=self.data.train_mask, shuffle=True
-                )
-                self._val_dataloader = self._spatial_node_loader(
-                    input_nodes=self.data.val_mask,
-                )
+        if stage == "fit" or stage is None:
+            self._train_dataloader = self._spatial_node_loader(
+                input_nodes=self.data.train_mask, shuffle=True
+            )
+            self._val_dataloader = self._spatial_node_loader(
+                input_nodes=self.data.val_mask,
+            )
 
-            if stage == "test" or stage is None:
-                self._test_dataloader = self._spatial_node_loader(
-                    input_nodes=self.data.test_mask,
-                )
-        else:
-
-            train, val, test = self._split_by_mask(self.data)
-
-            if stage == "fit" or stage is None:
-                self._train_dataloader = self._spatial_node_loader(
-                    data=train, shuffle=True
-                )
-                self._val_dataloader = self._spatial_node_loader(
-                    data=val,
-                )
-
-            if stage == "test" or stage is None:
-                self._test_dataloader = self._spatial_node_loader(
-                    data=test,
-                )
-            raise NotImplementedError("Not implemented yet")
+        if stage == "test" or stage is None:
+            self._test_dataloader = self._spatial_node_loader(
+                input_nodes=self.data.test_mask,
+            )
 
     def _graphwise_setup(self, stage: Optional[str]):
 
@@ -138,24 +116,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self._test_dataloader
-
-    def _non_spatial_node_loader(self, data, shuffle=False, **kwargs):
-        """If there is no edge_index on the data load random nodes
-
-        Args:
-            data (_type_): _description_
-            shuffle (bool, optional): _description_. Defaults to False.
-
-        Returns:
-            _type_: _description_
-        """
-        return RandomNodeSampler(
-            data=data,
-            shuffle=shuffle,
-            num_parts=self.batch_size,
-            num_workers=self.num_workers,
-            **kwargs
-        )
 
     def _graph_loader(self, data, shuffle=False, **kwargs):
         """Loads from the list of data
