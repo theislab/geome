@@ -264,3 +264,205 @@ def design_matrix(A, Xl, Xc):
     Xts = (torch.einsum("bp,br->bpr", Xs, Xl).reshape((N, L * L)) > 0).to(torch.float)
     Xd = torch.hstack((Xl, Xts, Xc))
     return Xd
+
+# class AnnData2DataCallableBuilder:
+#     def __init__(self):
+#         pass
+
+#     @staticmethod
+#     def _get_features_sq(adata, features) -> Dict:
+#         pass
+#     @staticmethod
+#     def _get_features(adata, features) -> Dict:
+#         pass
+
+#     def create_callable(self,
+#         is_sq=True,
+#         x_names:Set[str]=None,
+#         y_names:Set[str]=None
+#     ):
+#         if is_sq:
+#             # do squidpy stuff
+#             _get_features = AnnData2DataCallableBuilder._get_features_sq
+#         else:
+#             _get_features = AnnData2DataCallableBuilder._get_features
+
+
+#         features = set(*x_names, *y_names)
+#         def _callable_single_adata(adata):
+#             data = _get_features(adata,features)
+
+#             if x_names is not None:
+#                 data.x = _get_input_features(adata,x_names)
+#             if y_names is not None:
+#                 data.y = _get_out_features(adata,y_names)
+
+#         ...
+#         return _created_callable
+
+
+class AnnData2DataCallable:
+    def __init__(self) -> None:
+        pass
+
+    def _get_adj_matrix(self, adata):
+        """helper function to create adj matrix depending on the adata"""
+        
+        if self.is_sq:
+            # Get adjacency matrices
+            if "adjacency_matrix_connectivities" in adata.obsp.keys():
+                spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
+
+            else:
+                spatial_connectivities, _ = sq.gr.spatial_neighbors(
+                    adata[lib_indices[library_id]],
+                    coord_type="generic",
+                    key_added=library_id + "spatial",
+                    copy=True,
+                )
+        else:
+            if "adjacency_matrix_connectivities" in adata.obsp.keys():
+                spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
+            else:
+                spatial_connectivities, _ = sq.gr.spatial_neighbors(
+                    adata,
+                    coord_type="generic",
+                    key_added="spatial",
+                    copy=True,
+                )
+        return spatial_connectivities
+
+    def __call__(self, adatas):
+        dataset = []
+
+        for adata in adatas:
+            # Set cases for when one or more images are to be extracted from anndata
+
+            if self.is_sq:
+                # Case where multiply images are stored in one anndata
+                if "library_id" in adata.obs.keys():
+                    library_ids = [library_id for library_id in adata.uns["spatial"].keys()]
+                    lib_indices = adata.obs["library_id"] == library_ids[0]
+
+                    for i in range(len(library_ids) - 1):
+                        lib_indices = pd.concat(
+                            [lib_indices, adata.obs["library_id"] == library_ids[i + 1]], axis=1
+                        )
+                    lib_indices.columns = library_ids
+
+                # Case where one image is stored in one anndata
+                else:
+                    lib_indices = pd.DataFrame(data=range(len(adata.obs)), columns=[""])
+
+                for library_id in lib_indices.columns:
+
+                    spatial_connectivities = self._get_adj_matrix(adata)
+
+                    nodes1, nodes2 = spatial_connectivities.nonzero()
+                    edge_index = torch.vstack(
+                        [
+                            torch.from_numpy(nodes1).to(torch.long),
+                            torch.from_numpy(nodes2).to(torch.long),
+                        ]
+                    )
+
+                    # Get features
+                    if len(feature_names) > 1:
+                        cell_type = torch.from_numpy(
+                            pd.get_dummies(
+                                adata.obs[feature_names[0]][lib_indices[library_id]]
+                            ).to_numpy()
+                        )
+                        domain = torch.from_numpy(
+                            pd.get_dummies(
+                                adata.obs[feature_names[1]][lib_indices[library_id]]
+                            ).to_numpy()
+                        )
+                        features_combined = torch.cat([cell_type, domain], dim=1)
+                    else:
+                        features_combined = torch.from_numpy(
+                            pd.get_dummies(adata.obs[feature_names]).to_numpy()
+                        )
+
+                    # Get gene expression matrix
+                    X = adata.X[lib_indices[library_id]]
+
+                    if scipy.sparse.issparse(X):
+                        coo = X.tocoo()
+                        values = coo.data
+                        indices = np.vstack((coo.row, coo.col))
+                        i = torch.LongTensor(indices)
+                        v = torch.FloatTensor(values)
+                        shape = coo.shape
+                        gene_expression = torch.sparse.FloatTensor(
+                            i, v, torch.Size(shape)
+                        ).to_dense()
+                    else:
+                        gene_expression = torch.from_numpy(adata.X)
+
+                    # Create design matrix for linear model
+                    Xd = design_matrix(
+                        torch.Tensor(spatial_connectivities.todense()),
+                        cell_type.float(),
+                        domain,
+                    )
+
+                    data = Data(
+                        edge_index=edge_index, y=gene_expression, x=features_combined, Xd=Xd
+                    )
+                    dataset.append(data)
+
+            else:
+                # Get adjacency matrices
+                spatial_connectivities = _get_adj_matrix(adata)
+
+                nodes1, nodes2 = spatial_connectivities.nonzero()
+                edge_index = torch.vstack(
+                    [
+                        torch.from_numpy(nodes1).to(torch.long),
+                        torch.from_numpy(nodes2).to(torch.long),
+                    ]
+                )
+
+                # Get features
+                if len(feature_names) > 1:
+                    df1 = pd.get_dummies(adata.obs[feature_names[0]])
+                    df2 = pd.DataFrame(
+                        0,
+                        index=np.arange(len(adata.obs)),
+                        columns=set(adata.uns["node_type_names"].values()),
+                    )
+                    df2[df1.columns[0]] = list(df1[df1.columns[0]])
+                    cell_type = torch.from_numpy(df2.to_numpy())
+
+                    df1 = pd.get_dummies(
+                        adata.obs[feature_names[1]],
+                        columns=set(adata.uns["img_to_patient_dict"].values()),
+                    )
+                    df2 = pd.DataFrame(
+                        0,
+                        index=np.arange(len(adata.obs)),
+                        columns=set(adata.uns["img_to_patient_dict"].values()),
+                    )
+                    df2[df1.columns[0]] = list(df1[df1.columns[0]])
+                    domain = torch.from_numpy(df2.to_numpy())
+
+                    features_combined = torch.cat([cell_type, domain], dim=1)
+                else:
+                    features_combined = torch.from_numpy(
+                        pd.get_dummies(adata.obs[feature_names]).to_numpy()
+                    )
+
+                # Get gene expression matrix
+                gene_expression = torch.from_numpy(adata.X.astype(float))
+                # Create design matrix for linear model
+                Xd = design_matrix(
+                    torch.Tensor(spatial_connectivities.todense()), cell_type.float(), domain
+                )
+
+                data = Data(
+                    edge_index=edge_index, y=gene_expression, x=features_combined, Xd=Xd
+                )
+                dataset.append(data)
+
+        return dataset
