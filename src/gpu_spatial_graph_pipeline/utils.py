@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from typing import Sequence, Union
 from torch_geometric.data import Data
-
+from scipy import sparse
 
 class AnnData2DataCallable:
     def __init__(self, fields, adata_iter=None, *args, **kwargs):
@@ -31,20 +31,19 @@ class AnnData2DataCallable:
 
 
 class AnnData2DataCallableDefault(AnnData2DataCallable):
-    def __init__(self, x_names, y_names, adata_iter, yields_edge_index=True):
+    def __init__(self, fields, adata_iter, yields_edge_index=True):
         """
         assumes is called adjacency_matrix_connectivities in adata
 
         TODO: Specify fields format.
         """
-        super().__init__(x_names, y_names, adata_iter)
+        super().__init__(fields, adata_iter)
         if self._adata_iter is None:
             self._adata_iter = lambda x, _: x
         self.yields_edge_index = yields_edge_index
 
-    @overload
+    # @overload
     def _get_adj_matrix(self, adata, *args, **kwargs):
-        spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
         """helper function to create adj matrix depending on the adata"""
         # Get adjacency matrices
         if "adjacency_matrix_connectivities" in adata.obsp.keys():
@@ -60,25 +59,30 @@ class AnnData2DataCallableDefault(AnnData2DataCallable):
 
     @staticmethod
     def _get_sq_adata_iter(adata, fields):
-        adata.uns["processed_index"] = dict
+        adata.uns["processed_index"] = dict()
 
-        for k, v in fields.items():
-            attrs = v.split("/")
-            assert len(attrs) <= 2, "assumes at most one delimiter"
+        for k, addresses in fields.items():
 
-            if len(attrs) != 1:
-                # for each attr we find the corresponding value
-                obj = adata
-                for attr in attrs:
-                    obj = getattr(obj, attr)
+            for address in addresses:
+                attrs = address.split("/")
+                assert len(attrs) <= 2, "assumes at most one delimiter"
 
-                last_attr = attrs[-1]
-                # if obj is categorical
-                if obj.dtype.name == "category":
-                    adata.obsm[k] = pd.get_dummies(obj)
-                    adata.uns["processed_index"][v] = "obsm/" + last_attr
+                if len(attrs) != 1:
+                    # for each attr we find the corresponding value
+                    obj = adata
+                    for attr in attrs:
+                        obj = getattr(obj, attr)
+
+                    last_attr = attrs[-1]
+                    # if obj is categorical
+                    if obj.dtype.name == "category":
+                        adata.obsm[last_attr] = pd.get_dummies(obj).to_numpy()
+                        adata.uns["processed_index"][address] = "obsm/" + last_attr
+                    else:
+                        adata.uns["processed_index"][address] = address
+
                 else:
-                    adata.uns["processed_index"][v] = v
+                    adata.uns["processed_index"][address] = address
 
         cats = adata.obs.library_id.dtypes.categories
         for cat in cats:
@@ -88,14 +92,20 @@ class AnnData2DataCallableDefault(AnnData2DataCallable):
     def _get_as_array(adata, address):
         processed_address = adata.uns["processed_index"][address]
         obj = adata
+        attr = processed_address.split("/")
         for attr in processed_address.split("/"):
-            obj = getattr(obj, attr)
+            if hasattr(obj, attr):
+                obj = getattr(obj, attr)  # obj.attr
+            else:
+                obj = obj[attr]
+        if sparse.issparse(obj):
+            obj = np.array(obj.todense())
         return obj
 
-    @overload
+    # @overload
     def _create_data_obj(self, adata, spatial_connectivities):
         obj = dict()
-        if self.has_edge_index:
+        if self.yields_edge_index:
             nodes1, nodes2 = spatial_connectivities.nonzero()
             obj["edge_index"] = torch.vstack(
                 [
@@ -115,7 +125,6 @@ class AnnData2DataCallableDefault(AnnData2DataCallable):
             arrs = []
             for address in addresses:
                 arrs.append(AnnData2DataCallableDefault._get_as_array(adata, address))
-
             obj[sq2pyg[field]] = torch.from_numpy(np.concatenate(arrs, axis=-1))
 
         return Data(**obj)
