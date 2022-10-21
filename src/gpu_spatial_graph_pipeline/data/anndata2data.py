@@ -27,10 +27,12 @@ class AnnData2Data(ABC):
 
     def get_edge_index(self, adata, adj_matrix):
         nodes1, nodes2 = adj_matrix.nonzero()
-        return torch.vstack([
-            torch.from_numpy(nodes1).to(torch.long),
-            torch.from_numpy(nodes2).to(torch.long),
-        ])
+        return torch.vstack(
+            [
+                torch.from_numpy(nodes1).to(torch.long),
+                torch.from_numpy(nodes2).to(torch.long),
+            ]
+        )
 
     @abstractmethod
     def get_as_array(self, adata, address, *args, **kwargs):
@@ -71,7 +73,9 @@ class AnnData2Data(ABC):
 
 
 class AnnData2DataDefault(AnnData2Data):
-    def __init__(self, fields, adata_iter=None, preprocess=None, yields_edge_index=True):
+    def __init__(
+        self, fields, adata_iter=None, preprocess=None, yields_edge_index=True
+    ):
         """
         Assumes adata.obsp["adjacency_matrix_connectivities"] exists
         if not it is computed with sq.gr.spatial_neighbors.
@@ -85,7 +89,7 @@ class AnnData2DataDefault(AnnData2Data):
 
         Args:
             fields (_type_): _description_
-            adata_iter (_type_, optional): _description_. If set to None, will 
+            adata_iter (_type_, optional): _description_. If set to None, will
                 be equivalent to
                 the identity function. Which is the use case when the class is
                 called with a list of adata objects,
@@ -132,7 +136,7 @@ class AnnData2DataDefault(AnnData2Data):
 
         Returns:
             _type_: _description_
-        """    
+        """
         processed_address = adata.uns["processed_index"][address]
         obj = adata
         attr = processed_address.split("/")
@@ -177,65 +181,13 @@ class AnnData2DataDefault(AnnData2Data):
 
 
 class AnnData2DataSq(AnnData2DataDefault):
-    @staticmethod
-    def sq_adata_iter(adata, fields):
-        cats = adata.obs.library_id.dtypes.categories
-        for cat in cats:
-            yield adata[adata.obs.library_id == cat]
-
-
-
-
-class AnnData2DataSq(AnnData2DataCallable):
-    def __init__(self, fields, adata_iter, yields_edge_index=True):
-        """
-        Assumes is called adjacency_matrix_connectivities in adata.
-        Works for squidpy datasets and the datasets of this package.
-
-        Example for fields argument:
-            fields = {
-                'features':['obs/Cluster','obs/donor'],
-                'labels':['X']
-            }
-        """
-        super().__init__(fields, adata_iter)
-        # Default is the identity function.
-        if self._adata_iter is None:
-            self._adata_iter = lambda x, _: x
-        self.yields_edge_index = yields_edge_index
-
-    def get_adj_matrix(self, adata, *args, **kwargs):
-        """helper function to create adj matrix depending on the adata"""
-        # Get adjacency matrices
-        if "adjacency_matrix_connectivities" in adata.obsp.keys():
-            spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
-        else:
-            spatial_connectivities, _ = sq.gr.spatial_neighbors(
-                adata,
-                coord_type="generic",
-                key_added="spatial",
-                copy=True,
-            )
-        return spatial_connectivities
+    def __init__(self, fields, preprocess=None, yields_edge_index=True):
+        super().__init__(
+            fields, AnnData2DataSq.sq_adata_iter, preprocess, yields_edge_index
+        )
 
     @staticmethod
     def sq_adata_iter(adata, fields):
         cats = adata.obs.library_id.dtypes.categories
         for cat in cats:
             yield adata[adata.obs.library_id == cat]
-
-    def get_as_array(self, adata, address):
-        processed_address = adata.uns["processed_index"][address]
-        obj = adata
-        attr = processed_address.split("/")
-        for attr in processed_address.split("/"):
-            if hasattr(obj, attr):
-                obj = getattr(obj, attr)  # obj.attr
-            else:
-                obj = obj[attr]
-        if sparse.issparse(obj):
-            obj = np.array(obj.todense())
-        return obj
-
-
-
