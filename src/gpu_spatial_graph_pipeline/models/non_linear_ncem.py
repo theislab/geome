@@ -9,6 +9,7 @@ from sklearn.metrics import r2_score
 from gpu_spatial_graph_pipeline.models.modules.gnn_model import GNNModel
 from gpu_spatial_graph_pipeline.models.modules.mlp_model import MLPModel
 from torch_geometric.data import Batch
+from gpu_spatial_graph_pipeline.utils.weights import init_weights
 
 
 class NonLinearNCEM(pl.LightningModule):
