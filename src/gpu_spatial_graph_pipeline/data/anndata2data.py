@@ -108,7 +108,7 @@ class AnnData2DataDefault(AnnData2Data):
             self._adata_iter = lambda x, _: x
         if self._preprocess is None:
             self._preprocess = []
-        # Add preprocessing of the addresses to the front.
+        # Add preprocessing of the addresses to last.
         # So that get_as_array works properly.
         self._preprocess.insert(-1, AnnData2DataDefault.default_preprocess)
         self.yields_edge_index = yields_edge_index
