@@ -3,6 +3,8 @@ import squidpy as sq
 from scipy import sparse
 
 def get_address(adata, address):
+    #TODO check if address exists
+
     obj = adata
     for attr in address.split("/"):
         if hasattr(obj, attr):
@@ -35,7 +37,7 @@ def design_matrix(A, Xl, Xc):
     return Xd
 
 
-def add_design_matrix(adata, input_names, output_name):
+def add_design_matrix(adata, xl_name, xc_name, output_name):
     """Adds design matrix to the given adata object to the given field.
 
     A: Adj. matrix
@@ -44,8 +46,9 @@ def add_design_matrix(adata, input_names, output_name):
 
     Args:
         adata (_type_): _description_
-        input_names (_type_): Dictionary of field names where A, Xl and Xc are
-            in adata.
+        xl_names (_type_): field name Xl is in adata.
+        xc_name (_type_): field name Xc is in adata.
         output_name (_type_): Where to store the matrix in adata.
     """ 
-    pass
+    adata.obsm[output_name] = design_matrix(get_adjacency(adata), get_address(adata, xl_name), get_address(adata, xc_name))
+    return
