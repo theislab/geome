@@ -6,6 +6,8 @@ from torch_geometric.data import Data
 from scipy import sparse
 from abc import ABC, abstractmethod
 
+from ..utils.preprocessing import get_address, get_adjacency
+
 
 class AnnData2Data(ABC):
     def __init__(self, fields, adata_iter=None, preprocess=None, *args, **kwargs):
@@ -116,16 +118,7 @@ class AnnData2DataDefault(AnnData2Data):
     def get_adj_matrix(self, adata, *args, **kwargs):
         """helper function to create adj matrix depending on the adata"""
         # Get adjacency matrices
-        if "adjacency_matrix_connectivities" in adata.obsp.keys():
-            spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
-        else:
-            spatial_connectivities, _ = sq.gr.spatial_neighbors(
-                adata,
-                coord_type="generic",
-                key_added="spatial",
-                copy=True,
-            )
-        return spatial_connectivities
+        return get_adjacency(adata, *args, **kwargs)
 
     def get_as_array(self, adata, address):
         """This version assumes the addresses are stored on adata.uns
@@ -138,16 +131,7 @@ class AnnData2DataDefault(AnnData2Data):
             _type_: _description_
         """
         processed_address = adata.uns["processed_index"][address]
-        obj = adata
-        attr = processed_address.split("/")
-        for attr in processed_address.split("/"):
-            if hasattr(obj, attr):
-                obj = getattr(obj, attr)  # obj.attr
-            else:
-                obj = obj[attr]
-        if sparse.issparse(obj):
-            obj = np.array(obj.todense())
-        return obj
+        return get_address(adata, processed_address)
 
     @staticmethod
     def default_preprocess(adata, fields):

@@ -1,4 +1,29 @@
 import numpy as np
+import squidpy as sq
+from scipy import sparse
+
+def get_address(adata, address):
+    obj = adata
+    for attr in address.split("/"):
+        if hasattr(obj, attr):
+            obj = getattr(obj, attr)  # obj.attr
+        else:
+            obj = obj[attr]
+    if sparse.issparse(obj):
+        obj = np.array(obj.todense())
+    return obj
+
+def get_adjacency(adata, *args, **kwargs):
+    if "adjacency_matrix_connectivities" in adata.obsp.keys():
+        spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
+    else:
+        spatial_connectivities, _ = sq.gr.spatial_neighbors(
+            adata,
+            coord_type="generic",
+            key_added="spatial",
+            copy=True,
+            )
+    return spatial_connectivities
 
 
 def design_matrix(A, Xl, Xc):
@@ -22,5 +47,5 @@ def add_design_matrix(adata, input_names, output_name):
         input_names (_type_): Dictionary of field names where A, Xl and Xc are
             in adata.
         output_name (_type_): Where to store the matrix in adata.
-    """
+    """ 
     pass
