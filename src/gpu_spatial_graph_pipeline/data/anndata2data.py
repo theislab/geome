@@ -1,12 +1,10 @@
-import squidpy as sq
 import torch
 import pandas as pd
 import numpy as np
 from torch_geometric.data import Data
 from scipy import sparse
 from abc import ABC, abstractmethod
-
-from ..utils.preprocessing import get_address, get_adjacency
+from .utils.transforms import get_from_address, get_adjacency_from_adata
 
 
 class AnnData2Data(ABC):
@@ -16,7 +14,7 @@ class AnnData2Data(ABC):
         Args:
             fields (_type_): _description_
             adata_iter (_type_, optional): _description_. Defaults to None.
-            preprocess (_type_, optional): List of callables with signature of fn(adatas,fields).
+            preprocess (_type_, optional): List of callables with signature of fn(adata,fields).
                 Defaults to None.
         """
         self._adata_iter = adata_iter
@@ -37,7 +35,7 @@ class AnnData2Data(ABC):
         )
 
     @abstractmethod
-    def get_as_array(self, adata, address, *args, **kwargs):
+    def array_from_address(self, adata, address, *args, **kwargs):
         pass
 
     def create_data_obj(self, adata, adj_matrix):
@@ -45,39 +43,30 @@ class AnnData2Data(ABC):
         if self.yields_edge_index:
             obj["edge_index"] = self.get_edge_index(adata, adj_matrix)
 
-        # just for pytorch_geometric naming thing
-        sq2pyg = {
-            "features": "x",
-            "labels": "y",
-            "condition": "xc",
-        }
-
         for field, addresses in self.fields.items():
             arrs = []
             for address in addresses:
-                arrs.append(self.get_as_array(adata, address))
-            obj[sq2pyg[field]] = torch.from_numpy(np.concatenate(arrs, axis=-1))
+                arrs.append(self.array_from_address(adata, address))
+            obj[field] = torch.from_numpy(np.concatenate(arrs, axis=-1))
 
         return Data(**obj)
 
-    def __call__(self, adatas):
+    def __call__(self, adata):
         dataset = []
         # do the given preprocessing steps.
         for process in self._preprocess:
-            process(adatas, self.fields)
+            process(adata, self.fields)
         # iterate trough adata.
-        for adata in self._adata_iter(adatas, self.fields):
-            adj_matrix = self.get_adj_matrix(adata)
-            data = self.create_data_obj(adata, adj_matrix)
+        for subadata in self._adata_iter(adata):
+            adj_matrix = self.get_adj_matrix(subadata)
+            data = self.create_data_obj(subadata, adj_matrix)
             dataset.append(data)
 
         return dataset
 
 
 class AnnData2DataDefault(AnnData2Data):
-    def __init__(
-        self, fields, adata_iter=None, preprocess=None, yields_edge_index=True
-    ):
+    def __init__(self, fields, adata_iter, preprocess=None, yields_edge_index=True):
         """
         Assumes adata.obsp["adjacency_matrix_connectivities"] exists
         if not it is computed with sq.gr.spatial_neighbors.
@@ -91,12 +80,7 @@ class AnnData2DataDefault(AnnData2Data):
 
         Args:
             fields (_type_): _description_
-            adata_iter (_type_, optional): _description_. If set to None, will
-                be equivalent to
-                the identity function. Which is the use case when the class is
-                called with a list of adata objects,
-                so the iterator would be the list object itself.
-                Defaults to None.
+            adata_iter (_type_, optional): _description_.
             preprocess (_type_, optional): _description_.
                 This class by default adds a preprocessing step.
                 See the static method default_preprocess.
@@ -106,21 +90,21 @@ class AnnData2DataDefault(AnnData2Data):
         """
         super().__init__(fields, adata_iter, preprocess)
         # Default is the identity function.
-        if self._adata_iter is None:
-            self._adata_iter = lambda x, _: x
-        if self._preprocess is None:
-            self._preprocess = []
+        self._adata_iter = adata_iter
+        self._preprocess = [AnnData2DataDefault.convert_to_array]
         # Add preprocessing of the addresses to last.
         # So that get_as_array works properly.
-        self._preprocess.insert(-1, AnnData2DataDefault.default_preprocess)
+        self._preprocess = (
+            preprocess if preprocess is not None else []
+        ) + self._preprocess
         self.yields_edge_index = yields_edge_index
 
     def get_adj_matrix(self, adata, *args, **kwargs):
         """helper function to create adj matrix depending on the adata"""
         # Get adjacency matrices
-        return get_adjacency(adata, *args, **kwargs)
+        return get_adjacency_from_adata(adata, *args, **kwargs)
 
-    def get_as_array(self, adata, address):
+    def array_from_address(self, adata, address):
         """This version assumes the addresses are stored on adata.uns
 
         Args:
@@ -131,10 +115,10 @@ class AnnData2DataDefault(AnnData2Data):
             _type_: _description_
         """
         processed_address = adata.uns["processed_index"][address]
-        return get_address(adata, processed_address)
+        return get_from_address(adata, processed_address)
 
     @staticmethod
-    def default_preprocess(adata, fields):
+    def convert_to_array(adata, fields):
         """Adds the addresses that map fields addresses with
         the addresses on the adata it exists on.
         """
@@ -143,35 +127,41 @@ class AnnData2DataDefault(AnnData2Data):
         for _, addresses in fields.items():
 
             for address in addresses:
-                attrs = address.split("/")
-                assert len(attrs) <= 2, "assumes at most one delimiter"
+                last_attr = address.split("/")[-1]
+                save_name = last_attr + "_processed"
+                # TODO: Is adding a suffix a good idea?
 
-                if len(attrs) != 1:
-                    # for each attr we find the corresponding value
-                    obj = adata
-                    for attr in attrs:
-                        obj = getattr(obj, attr)
+                obj = get_from_address(adata, address)
 
-                    last_attr = attrs[-1]
-                    # if obj is categorical
-                    if obj.dtype.name == "category":
-                        adata.obsm[last_attr] = pd.get_dummies(obj).to_numpy()
-                        adata.uns["processed_index"][address] = "obsm/" + last_attr
-                    else:
-                        adata.uns["processed_index"][address] = address
+                # if obj is categorical
+                if obj.dtype.name == "category":
+                    adata.obsm[save_name] = pd.get_dummies(obj).to_numpy()
+                    adata.uns["processed_index"][address] = "obsm/" + save_name
+                elif not np.issubdtype(obj.dtype, np.number):
+                    adata.obsm[save_name] = obj.astype(np.float)
+                    adata.uns["processed_index"][address] = "obsm/" + save_name
+                elif sparse.issparse(obj):
+                    adata.obsm[save_name] = np.array(obj.todense())
+                    adata.uns["processed_index"][address] = "obsm/" + save_name
 
+                # If no storing required
                 else:
                     adata.uns["processed_index"][address] = address
 
 
-class AnnData2DataSq(AnnData2DataDefault):
-    def __init__(self, fields, preprocess=None, yields_edge_index=True):
+class AnnData2DataByCategory(AnnData2DataDefault):
+    def __init__(self, fields, category, preprocess=None, yields_edge_index=True):
         super().__init__(
-            fields, AnnData2DataSq.sq_adata_iter, preprocess, yields_edge_index
+            fields=fields,
+            adata_iter=lambda x: AnnData2DataByCategory.adata_iter_category(
+                x, category
+            ),
+            preprocess=preprocess,
+            yields_edge_index=yields_edge_index,
         )
 
     @staticmethod
-    def sq_adata_iter(adata, fields):
-        cats = adata.obs.library_id.dtypes.categories
+    def adata_iter_category(adata, c):
+        cats = adata.obs[c].dtypes.categories
         for cat in cats:
-            yield adata[adata.obs.library_id == cat]
+            yield adata[adata.obs[c] == cat]
