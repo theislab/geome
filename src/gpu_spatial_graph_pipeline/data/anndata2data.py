@@ -47,7 +47,7 @@ class AnnData2Data(ABC):
             arrs = []
             for address in addresses:
                 arrs.append(self.array_from_address(adata, address))
-            obj[field] = torch.from_numpy(np.concatenate(arrs, axis=-1))
+            obj[field] = torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
 
         return Data(**obj)
 
