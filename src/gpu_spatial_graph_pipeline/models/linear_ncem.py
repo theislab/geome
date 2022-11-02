@@ -6,7 +6,7 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from ..models.modules.linear_model import LinearNonspatial, LinearSpatial
+from ..models.modules.linear_model import LinearNonSpatial, LinearSpatial
 import numpy as np
 from torch_geometric.data import Batch
 
@@ -33,11 +33,11 @@ class LinearNCEM(pl.LightningModule):
 
         elif self.model_type.casefold() == "nonspatial":
 
-            self.model_sigma = LinearNonspatial(
+            self.model_sigma = LinearNonSpatial(
                 in_channels=self.hparams.in_channels,
                 out_channels=self.hparams.out_channels,
             )
-            self.model_mu = LinearNonspatial(
+            self.model_mu = LinearNonSpatial(
                 in_channels=self.hparams.in_channels,
                 out_channels=self.hparams.out_channels,
             )
@@ -72,16 +72,9 @@ class LinearNCEM(pl.LightningModule):
         return parent_parser
 
     def forward(self, data):
-        self.batch_size = data.batch_size
-        if self.model_type.casefold() == "spatial":
-            x = data.Xd
-            mu = self.model_mu(x)
-            sigma = torch.exp(self.model_sigma(x))
-
-        elif self.model_type.casefold() == "nonspatial":
-            x = data.x.float()
-            mu = self.model_mu(x)
-            sigma = torch.exp(self.model_sigma(x))
+        x = data.x
+        mu = self.model_mu(x)
+        sigma = torch.exp(self.model_sigma(x))
 
         # scale by sf
         if self.use_node_scale:
@@ -91,8 +84,8 @@ class LinearNCEM(pl.LightningModule):
 
         # clip output
         bound = 60.0
-        torch.clamp(mu, min=-np.exp(bound), max=np.exp(bound))
-        torch.clamp(sigma, min=-bound, max=bound)
+        mu = torch.clamp(mu, min=-np.exp(bound), max=np.exp(bound))
+        sigma = torch.clamp(sigma, min=-bound, max=bound)
         return mu, sigma
 
     def configure_optimizers(self):
@@ -104,7 +97,8 @@ class LinearNCEM(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, _):
-        if type(batch) == list:
+        if type(batch) == list or type(batch) == tuple:
+            self.batch_size = len(batch)
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
         loss = self.loss_module(
@@ -114,7 +108,8 @@ class LinearNCEM(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, _):
-        if type(batch) == list:
+        if type(batch) == list or type(batch) == tuple:
+            self.batch_size = len(batch)
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
         val_loss = self.loss_module(
@@ -130,6 +125,7 @@ class LinearNCEM(pl.LightningModule):
 
     def test_step(self, batch, _):
         if type(batch) == list:
+            self.batch_size = len(batch)
             batch = Batch.from_data_list(batch)
         mu, sigma = self.forward(batch)
         test_loss = self.loss_module(

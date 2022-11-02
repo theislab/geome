@@ -7,7 +7,7 @@ import torch.nn as nn
 # Linear NCEM spatial and nonspatial models as defined in https://www.biorxiv.org/content/10.1101/2021.07.11.451750v1
 
 
-class LinearNonspatial(nn.Module):
+class LinearNonSpatial(nn.Module):
     def __init__(self, in_channels, out_channels):
         """
         Inputs:

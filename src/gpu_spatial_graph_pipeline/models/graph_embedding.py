@@ -59,4 +59,3 @@ class GraphEmbedding(pl.LightningModule):
     def test_step(self, data_list, batch_idx):
         loss, batch_size = self.general_step(data_list, batch_idx, "test")
         self.log('test_loss', loss, batch_size=batch_size, prog_bar=True)
-# TODO: think of ways to handle params for the models

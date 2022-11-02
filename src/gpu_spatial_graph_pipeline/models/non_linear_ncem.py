@@ -1,10 +1,6 @@
 """
 NonLinearNCEM module
 """
-import sys
-import os
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -12,8 +8,8 @@ import torch.optim as optim
 from sklearn.metrics import r2_score
 from gpu_spatial_graph_pipeline.models.modules.gnn_model import GNNModel
 from gpu_spatial_graph_pipeline.models.modules.mlp_model import MLPModel
-from gpu_spatial_graph_pipeline.utils import init_weights
 from torch_geometric.data import Batch
+from gpu_spatial_graph_pipeline.utils.weights import init_weights
 
 
 class NonLinearNCEM(pl.LightningModule):
