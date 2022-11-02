@@ -976,7 +976,7 @@ class DatasetPascualReguant(Dataset):
         self.celldata = celldata
 
     def _register_img_celldata(self):
-        """Load dictionary of of image-wise celldata objects with {imgage key : anndata object of image}."""
+        """Load dictionary of of image-wise celldata objects with {image key : anndata object of image}."""
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
