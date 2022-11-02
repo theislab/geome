@@ -12,8 +12,7 @@ VALID_SPLIT = {"node", "graph"}
 class GraphAnnDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        adata: AnnData = None,
-        adata2data_fn: Callable[[AnnData], Union[Sequence[Data], Batch]] = None,
+        datas: Sequence[Data] = None,
         batch_size: int = 1,
         num_workers: int = 1,
         learning_type: Literal["node", "graph"] = "node",
@@ -44,22 +43,24 @@ class GraphAnnDataModule(pl.LightningDataModule):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.adata2data_fn = adata2data_fn
-        self.adata = adata
+        self.data = datas
         if learning_type not in VALID_SPLIT:
             raise ValueError("Learning type must be one of %r." % VALID_SPLIT)
         self.learning_type = learning_type
+        self.first_time = True
 
     def _nodewise_setup(self, stage: Optional[str]):
-        self.data = Batch.from_data_list(self.data)
 
-        self.transform = RandomNodeSplit(
-            split="train_rest",
-            num_val=max(int(self.data.num_nodes * 0.1), 1),
-            num_test=max(int(self.data.num_nodes * 0.05), 1),
-        )
+        if self.first_time:
+            self.data = Batch.from_data_list(self.data)
+            self.transform = RandomNodeSplit(
+                split="train_rest",
+                num_val=max(int(self.data.num_nodes * 0.1), 1),
+                num_test=max(int(self.data.num_nodes * 0.05), 1),
+            )
 
-        self.data = self.transform(self.data)
+            self.data = self.transform(self.data)
+            self.first_time = False
 
         if stage == "fit" or stage is None:
             self._train_dataloader = self._spatial_node_loader(
@@ -68,7 +69,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
             self._val_dataloader = self._spatial_node_loader(
                 input_nodes=self.data.val_mask,
             )
-
         if stage == "test" or stage is None:
             self._test_dataloader = self._spatial_node_loader(
                 input_nodes=self.data.test_mask,
@@ -95,14 +95,13 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # TODO: Splitting
         # stage = "train" if not stage else stage
 
-        self.data = self.adata2data_fn(self.adata)
 
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
 
-        if self.learning_type == "graphwise":
+        if self.learning_type == "graph":
             if len(self.data) <= 3:
-                raise RuntimeError("Not enough graphs in data to do graphwise learning")
+                raise RuntimeError("Not enough graphs in data to do graph-wise learning")
             self._graphwise_setup(stage)
 
         else:
