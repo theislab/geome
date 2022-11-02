@@ -21,19 +21,16 @@ class GNNModel(nn.Module):
         if hidden_dims is not None:
             for dim in hidden_dims:
                 layers += [
-                    geom_nn.GCNConv(
-                        in_channels=prev_dim,
-                        out_channels=dim),
+                    geom_nn.GCNConv(in_channels=prev_dim, out_channels=dim),
                     nn.ReLU(inplace=True),
-                    nn.Softmax(dim=1)
+                    nn.Softmax(dim=1),
                 ]
                 prev_dim = dim
 
         layers += [
-            geom_nn.GCNConv(in_channels=prev_dim,
-                            out_channels=out_channels),
+            geom_nn.GCNConv(in_channels=prev_dim, out_channels=out_channels),
             nn.ReLU(inplace=True),
-            nn.Softmax(dim=1)
+            nn.Softmax(dim=1),
         ]
 
         self.layers = nn.ModuleList(layers)

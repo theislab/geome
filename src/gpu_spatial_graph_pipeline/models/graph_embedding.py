@@ -4,6 +4,7 @@ g(A,X) from the paper
 """
 import torch
 from gpu_spatial_graph_pipeline.models.modules.graph_ae import GraphAE
+#from models.modules.graph_ae import GraphAE
 import pytorch_lightning as pl
 from torch_geometric.data import Batch
 
@@ -58,4 +59,3 @@ class GraphEmbedding(pl.LightningModule):
     def test_step(self, data_list, batch_idx):
         loss, batch_size = self.general_step(data_list, batch_idx, "test")
         self.log('test_loss', loss, batch_size=batch_size, prog_bar=True)
-# TODO: think of ways to handle params for the models
