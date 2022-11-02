@@ -8,6 +8,8 @@ from anndata import AnnData
 VALID_STAGE = {"fit", "test", None}
 VALID_SPLIT = {"node", "graph"}
 
+# TODO: Fix dataloader
+
 
 class GraphAnnDataModule(pl.LightningDataModule):
     def __init__(
