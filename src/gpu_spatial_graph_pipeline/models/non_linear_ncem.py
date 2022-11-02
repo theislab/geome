@@ -55,7 +55,6 @@ class NonLinearNCEM(pl.LightningModule):
         )
         return optimizer
 
-
     def training_step(self, batch, _):
 
         self.batch_size = batch.batch_size
@@ -68,7 +67,7 @@ class NonLinearNCEM(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, _):
-        
+
         self.batch_size = batch.batch_size
 
         mu, sigma = self.forward(batch)
