@@ -58,3 +58,8 @@ def get_from_address(adata, address):
         else:
             obj = obj[attr]
     return obj
+
+
+def categorize_obs(adata, obs_list):
+    for cat in obs_list:
+        adata.obs[cat] = adata.obs[cat].astype('category')
