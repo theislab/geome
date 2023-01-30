@@ -67,6 +67,9 @@ please [file an issue] along with a detailed description.
 
 ## Credits
 
+Some of the data for `DatasetHartmann` is distributed in this package.
+It was originally retrieved from: https://zenodo.org/record/3951613#.Y9flQS-B1qv
+
 This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter] template.
 
 [@cjolowicz]: https://github.com/cjolowicz
