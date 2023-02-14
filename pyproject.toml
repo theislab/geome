@@ -5,15 +5,36 @@ description = "Gpu Spatial Graph Pipeline"
 authors = ["- <->"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/syelman/gpu-spatial-graph-pipeline"
-repository = "https://github.com/syelman/gpu-spatial-graph-pipeline"
+homepage = "https://github.com/theislab/gpu-spatial-graph-pipeline"
+repository = "https://github.com/theislab/gpu-spatial-graph-pipeline"
 documentation = "https://gpu-spatial-graph-pipeline.readthedocs.io"
+
+maintainers = [
+    {name = "Isaac Virshup", email = "ivirshup@gmail.com"},
+    {name = "Marcella Toth", email = "toth.marcella@gmail.com"},
+    {name = "Selman Özleyen", email = "syozleyen@gmail.com"},
+]
+
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: BSD License",
+    "Environment :: Console",
+    "Framework :: Jupyter",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/syelman/gpu-spatial-graph-pipeline/releases"
+Changelog = "https://github.com/theislab/gpu-spatial-graph-pipeline/releases"
 
 [tool.poetry.dependencies]
 python = "^3.7"
