@@ -45,6 +45,20 @@ See the [changelog][changelog].
 For questions and help requests, you can reach out in the [scverse discourse][scverse-discourse].
 If you found a bug, please use the [issue tracker][issue-tracker].
 
+
+## Credits
+
+Some of the data for `DatasetHartmann` is distributed in this package.
+It was originally retrieved from: https://zenodo.org/record/3951613#.Y9flQS-B1qv
+
+This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter] template.
+
+[@cjolowicz]: https://github.com/cjolowicz
+[pypi]: https://pypi.org/
+[hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
+[file an issue]: https://github.com/syelman/gpu-spatial-graph-pipeline/issues
+[pip]: https://pip.pypa.io/
+
 ## Citation
 
 > t.b.a
