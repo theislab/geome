@@ -1,85 +1,56 @@
-# Gpu Spatial Graph Pipeline
+# gpu-spatial-graph-pipeline
 
-[![PyPI](https://img.shields.io/pypi/v/gpu-spatial-graph-pipeline.svg)][pypi_]
-[![Status](https://img.shields.io/pypi/status/gpu-spatial-graph-pipeline.svg)][status]
-[![Python Version](https://img.shields.io/pypi/pyversions/gpu-spatial-graph-pipeline)][python version]
-[![License](https://img.shields.io/pypi/l/gpu-spatial-graph-pipeline)][license]
+[![Tests][badge-tests]][link-tests]
+[![Documentation][badge-docs]][link-docs]
 
-[![Read the documentation at https://gpu-spatial-graph-pipeline.readthedocs.io/](https://img.shields.io/readthedocs/gpu-spatial-graph-pipeline/latest.svg?label=Read%20the%20Docs)][read the docs]
-[![Tests](https://github.com/syelman/gpu-spatial-graph-pipeline/workflows/Tests/badge.svg)][tests]
-[![Codecov](https://codecov.io/gh/syelman/gpu-spatial-graph-pipeline/branch/main/graph/badge.svg)][codecov]
+[badge-tests]: https://img.shields.io/github/actions/workflow/status/tothmarcella/gpu-spatial-graph-pipeline/test.yaml?branch=main
+[link-tests]: https://github.com/theislab/gpu-spatial-graph-pipeline/actions/workflows/test.yml
+[badge-docs]: https://img.shields.io/readthedocs/gpu-spatial-graph-pipeline
 
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
-[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
+The repo provides a set of tools for creating PyTorch Geometric (PyG) data objects from AnnData objects, which are commonly used for storing and manipulating single-cell genomics data. In addition, the repo includes functionality for creating PyTorch Lightning (PyTorch-Lightning) DataModule objects from the PyG data objects, which can be used to create graph neural network (GNN) data pipelines. The PyG data objects represent graphs, where the nodes represent cells and the edges represent relationships between the cells, and can be used to perform GNN tasks such as node classification, graph classification, and link prediction. The repo is written in Python and utilizes the PyTorch, PyTorch Geometric, and PyTorch-Lightning libraries.
 
-[pypi_]: https://pypi.org/project/gpu-spatial-graph-pipeline/
-[status]: https://pypi.org/project/gpu-spatial-graph-pipeline/
-[python version]: https://pypi.org/project/gpu-spatial-graph-pipeline
-[read the docs]: https://gpu-spatial-graph-pipeline.readthedocs.io/
-[tests]: https://github.com/syelman/gpu-spatial-graph-pipeline/actions?workflow=Tests
-[codecov]: https://app.codecov.io/gh/syelman/gpu-spatial-graph-pipeline
-[pre-commit]: https://github.com/pre-commit/pre-commit
-[black]: https://github.com/psf/black
+## Getting started
 
-## Features
+Please refer to the [documentation][link-docs]. In particular, the
 
-- TODO
-
-## Requirements
-
-- pytorch_lightning
-- torch
-- torch_geometric
-- anndata
+-   [API documentation][link-api].
 
 ## Installation
 
-You can install _Gpu Spatial Graph Pipeline_ via [pip] from [PyPI]:
+You need to have Python 3.8 or newer installed on your system. If you don't have
+Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 
-<!-- ```console
-$ pip install gpu-spatial-graph-pipeline
-``` -->
+There are several alternative options to install gpu-spatial-graph-pipeline:
 
-For development use
-```console
-$ pip install -e .
+<!--
+1) Install the latest release of `gpu-spatial-graph-pipeline` from `PyPI <https://pypi.org/project/gpu-spatial-graph-pipeline/>`_:
+
+```bash
+pip install gpu-spatial-graph-pipeline
+```
+-->
+
+1. Install the latest development version:
+
+```bash
+pip install git+https://github.com/tothmarcella/gpu-spatial-graph-pipeline.git@main
 ```
 
+## Release notes
 
-## Usage
+See the [changelog][changelog].
 
-Please see the [Command-line Reference] for details.
+## Contact
 
-## Contributing
+For questions and help requests, you can reach out in the [scverse discourse][scverse-discourse].
+If you found a bug, please use the [issue tracker][issue-tracker].
 
-Contributions are very welcome.
-To learn more, see the [Contributor Guide].
+## Citation
 
-## License
+> t.b.a
 
-Distributed under the terms of the [MIT license][license],
-_Gpu Spatial Graph Pipeline_ is free and open source software.
-
-## Issues
-
-If you encounter any problems,
-please [file an issue] along with a detailed description.
-
-## Credits
-
-Some of the data for `DatasetHartmann` is distributed in this package.
-It was originally retrieved from: https://zenodo.org/record/3951613#.Y9flQS-B1qv
-
-This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter] template.
-
-[@cjolowicz]: https://github.com/cjolowicz
-[pypi]: https://pypi.org/
-[hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
-[file an issue]: https://github.com/syelman/gpu-spatial-graph-pipeline/issues
-[pip]: https://pip.pypa.io/
-
-<!-- github-only -->
-
-[license]: https://github.com/syelman/gpu-spatial-graph-pipeline/blob/main/LICENSE
-[contributor guide]: https://github.com/syelman/gpu-spatial-graph-pipeline/blob/main/CONTRIBUTING.md
-[command-line reference]: https://gpu-spatial-graph-pipeline.readthedocs.io/en/latest/usage.html
+[scverse-discourse]: https://discourse.scverse.org/
+[issue-tracker]: https://github.com/tothmarcella/gpu-spatial-graph-pipeline/issues
+[changelog]: https://gpu-spatial-graph-pipeline.readthedocs.io/latest/changelog.html
+[link-docs]: https://gpu-spatial-graph-pipeline.readthedocs.io
+[link-api]: https://gpu-spatial-graph-pipeline.readthedocs.io/latest/api.html
