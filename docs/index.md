@@ -7,10 +7,8 @@
 :maxdepth: 1
 
 api.md
-changelog.md
 template_usage.md
 contributing.md
-references.md
 
-notebooks/example
+notebooks/non_linear_NCEM_graph.ipynb
 ```

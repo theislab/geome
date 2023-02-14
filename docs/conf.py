@@ -9,22 +9,28 @@ import sys
 from datetime import datetime
 from importlib.metadata import metadata
 from pathlib import Path
+import os
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "extensions"))
+HERE2 = HERE.parent
+sys.path.insert(0, str(HERE2 / "src"))
 
 
 # -- Project information -----------------------------------------------------
 
-info = metadata("gpu-spatial-graph-pipeline")
-project_name = info["Name"]
-author = info["Author"]
+#info = metadata("gpu-spatial-graph-pipeline")
+#project_name = info["Name"]
+project_name = "gpu-spatial-graph-pipeline"
+#author = info["Author"]
+author = "Selman Ozleyan, Chelsea Bright, Marcella Toth"
 copyright = f"{datetime.now():%Y}, {author}."
-version = info["Version"]
+#version = info["Version"]
+version = "0.1"
 repository_url = f"https://github.com/tothmarcella/{project_name}"
 
 # The full version, including alpha/beta/rc tags
-release = info["Version"]
+#release = info["Version"]
 
 bibtex_bibfiles = ["references.bib"]
 templates_path = ["_templates"]
@@ -45,13 +51,13 @@ html_context = {
 # They can be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "myst_nb",
-    "sphinx_copybutton",
+    #"sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
-    "sphinxcontrib.bibtex",
-    "sphinx_autodoc_typehints",
+    #"sphinxcontrib.bibtex",
+    #"sphinx_autodoc_typehints",
     "sphinx.ext.mathjax",
     "IPython.sphinxext.ipython_console_highlighting",
     *[p.stem for p in (HERE / "extensions").glob("*.py")],
@@ -102,7 +108,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_book_theme"
+html_theme = "furo"
 html_static_path = ["_static"]
 html_title = project_name
 
