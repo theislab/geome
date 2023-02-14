@@ -1,5 +1,5 @@
 import pytorch_lightning as pl
-from typing import Callable, Literal, Optional, Sequence, Union
+from typing import Callable, Literal, Optional, Sequence, Union, List
 from torch_geometric.loader import NeighborLoader, DataListLoader
 from torch_geometric.data import Data, Batch
 from torch_geometric.transforms import RandomNodeSplit
@@ -14,31 +14,25 @@ VALID_SPLIT = {"node", "graph"}
 class GraphAnnDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        datas: Sequence[Data] = None,
+        datas: Optional[Sequence[Data]] = None,
         batch_size: int = 1,
         num_workers: int = 1,
         learning_type: Literal["node", "graph"] = "node",
     ):
-        """Manages loading and sampling schemes before loading to GPU.
+        """
+        Manages loading and sampling schemes before loading to GPU.
 
         Args:
-            adata (AnnData, optional): _description_. Defaults to None.
-            adata2data_fn (Callable[[AnnData], Union[Sequence[Data], Batch]], optional): _description_. Defaults to None.
-            batch_size (int, optional): _description_. Defaults to 1.
-            num_workers (int, optional): _description_. Defaults to 1.
-            learning_type (Literal[&quot;node&quot;, &quot;graph&quot;], optional):
-                If graph is selected batch_size means number of graphs and the adata2data_fn
-                is expected to give a list of Data.
-                If node is selected batch_size means the number of nodes
-                and adata2data_fn is
-                expected to give a list of Data objects
-                with edge_index attribute.
-
-                 Defaults to "nodewise".
-
+            datas (Sequence[Data], optional): The data to be loaded. Defaults to None.
+            batch_size (int, optional): The batch size. Defaults to 1.
+            num_workers (int, optional): The number of workers. Defaults to 1.
+            learning_type (Literal["node", "graph"], optional): The type of learning to be performed.
+                If "graph" is selected, `batch_size` means the number of graphs and `datas` is expected to be a list of Data.
+                If "node" is selected, `batch_size` means the number of nodes and `datas` is expected to be a list of Data objects
+                with an edge_index attribute. Defaults to "node".
 
         Raises:
-            ValueError: _description_
+            ValueError: If `learning_type` is not one of {"node", "graph"}.
         """
         # TODO: Fill the docstring
 
@@ -51,8 +45,16 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.learning_type = learning_type
         self.first_time = True
 
-    def _nodewise_setup(self, stage: Optional[str]):
+    def _nodewise_setup(self, stage: Optional[str]) -> None:
+        """
+        Sets up the data loaders for node-wise learning.
 
+        Args:
+            stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
+
+        Returns:
+            None
+        """
         if self.first_time:
             self.data = Batch.from_data_list(self.data)
             self.transform = RandomNodeSplit(
@@ -76,8 +78,16 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 input_nodes=self.data.test_mask,
             )
 
-    def _graphwise_setup(self, stage: Optional[str]):
+    def _graphwise_setup(self, stage: Optional[str]) -> None:
+        """
+        Sets up the data loaders for graph-wise learning.
 
+        Args:
+            stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
+
+        Returns:
+            None
+        """
         num_val = int(len(self.data) * 0.05 + 1)
         num_test = int(len(self.data) * 0.01 + 1)
 
@@ -93,6 +103,12 @@ class GraphAnnDataModule(pl.LightningDataModule):
             )
 
     def setup(self, stage: Optional[str] = None):
+        """
+        Setup function to be called at the beginning of training, validation or testing
+
+        Args:
+            stage (str, optional): the stage of the training, either 'train', 'val' or 'test'. Defaults to None.
+        """
         # TODO: Implement each case
         # TODO: Splitting
         # stage = "train" if not stage else stage
@@ -110,22 +126,33 @@ class GraphAnnDataModule(pl.LightningDataModule):
             self._nodewise_setup(stage)
 
     def train_dataloader(self):
+        """
+        Returns the training dataloader
+        """
         return self._train_dataloader
 
     def val_dataloader(self):
+        """
+        Returns the validation dataloader
+        """
         return self._val_dataloader
 
     def test_dataloader(self):
+        """
+        Returns the test dataloader
+        """
         return self._test_dataloader
 
-    def _graph_loader(self, data, shuffle=False, **kwargs):
-        """Loads from the list of data
+    def _graph_loader(self, data: List, shuffle: bool = False, **kwargs) -> DataListLoader:
+        """
+        Loads the data in the form of graphs
 
         Args:
-            shuffle (bool, optional): _description_. Defaults to False.
+            data (List): list of data to be loaded
+            shuffle (bool, optional): whether to shuffle the data. Defaults to False.
 
         Returns:
-            _type_: _description_
+            DataListLoader: the graph dataloader
         """
         return DataListLoader(
             dataset=data,
@@ -135,7 +162,17 @@ class GraphAnnDataModule(pl.LightningDataModule):
             **kwargs
         )
 
-    def _spatial_node_loader(self, input_nodes, shuffle=False, **kwargs):
+    def _spatial_node_loader(self, input_nodes: List, shuffle: bool = False, **kwargs) -> NeighborLoader:
+        """
+        Loads the data in the form of nodes
+
+        Args:
+            input_nodes (List): the input nodes
+            shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+
+        Returns:
+            NeighborLoader: the node dataloader
+        """
         return NeighborLoader(
             self.data,
             num_neighbors=[-1],
