@@ -1,7 +1,9 @@
 import mock
 import sys
+from datetime import datetime
+from pathlib import Path
 
-MOCK_MODULES = ['torch', 'torch_geometric']
+MOCK_MODULES = ['torch', 'torch_geometric', 'torch_geometric.data']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -12,9 +14,6 @@ for mod_name in MOCK_MODULES:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
-from datetime import datetime
-from pathlib import Path
-
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "extensions"))
