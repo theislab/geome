@@ -1,3 +1,11 @@
+import mock
+import sys
+
+ 
+MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'torch', 'torch_geometric']
+for mod_name in MOCK_MODULES:
+sys.modules[mod_name] = mock.Mock()
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -5,7 +13,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
-import sys
 from datetime import datetime
 from pathlib import Path
 
