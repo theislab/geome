@@ -1,10 +1,9 @@
 import mock
 import sys
 
- 
 MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'torch', 'torch_geometric']
 for mod_name in MOCK_MODULES:
-sys.modules[mod_name] = mock.Mock()
+    sys.modules[mod_name] = mock.Mock()
 
 # Configuration file for the Sphinx documentation builder.
 #
