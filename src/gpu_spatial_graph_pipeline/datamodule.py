@@ -1,9 +1,8 @@
 import pytorch_lightning as pl
-from typing import Callable, Literal, Optional, Sequence, Union, List
+from typing import Literal, Optional, Sequence, List
 from torch_geometric.loader import NeighborLoader, DataListLoader
 from torch_geometric.data import Data, Batch
 from torch_geometric.transforms import RandomNodeSplit
-from anndata import AnnData
 
 VALID_STAGE = {"fit", "test", None}
 VALID_SPLIT = {"node", "graph"}
@@ -67,9 +66,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             self.first_time = False
 
         if stage == "fit" or stage is None:
-            self._train_dataloader = self._spatial_node_loader(
-                input_nodes=self.data.train_mask, shuffle=True
-            )
+            self._train_dataloader = self._spatial_node_loader(input_nodes=self.data.train_mask, shuffle=True)
             self._val_dataloader = self._spatial_node_loader(
                 input_nodes=self.data.val_mask,
             )
@@ -98,9 +95,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             )
             self._val_dataloader = self._graph_loader(data=self.data[:num_val])
         if stage == "test" or stage is None:
-            self._test_dataloader = self._graph_loader(
-                data=self.data[num_val : num_val + num_test]
-            )
+            self._test_dataloader = self._graph_loader(data=self.data[num_val : num_val + num_test])
 
     def setup(self, stage: Optional[str] = None):
         """
@@ -112,7 +107,6 @@ class GraphAnnDataModule(pl.LightningDataModule):
         # TODO: Implement each case
         # TODO: Splitting
         # stage = "train" if not stage else stage
-
 
         if stage not in VALID_STAGE:
             raise ValueError("Stage must be one of %r." % VALID_STAGE)
@@ -155,11 +149,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             DataListLoader: the graph dataloader
         """
         return DataListLoader(
-            dataset=data,
-            shuffle=shuffle,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            **kwargs
+            dataset=data, shuffle=shuffle, batch_size=self.batch_size, num_workers=self.num_workers, **kwargs
         )
 
     def _spatial_node_loader(self, input_nodes: List, shuffle: bool = False, **kwargs) -> NeighborLoader:
@@ -180,5 +170,5 @@ class GraphAnnDataModule(pl.LightningDataModule):
             input_nodes=input_nodes,
             shuffle=shuffle,
             num_workers=self.num_workers,
-            **kwargs
+            **kwargs,
         )
