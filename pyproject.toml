@@ -33,6 +33,7 @@ dev = [
     "twine>=4.0.2"
 ]
 doc = [
+    "furo",
     "sphinx>=4",
     "sphinx-book-theme>=0.3.3",
     "myst-nb",
