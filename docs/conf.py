@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-MOCK_MODULES = ['torch', 'torch_geometric', 'torch_geometric.data', 'squidpy', 'pytorch_lightning']
+MOCK_MODULES = ['torch', 'torch_geometric', 'torch_geometric.data', 'squidpy', 'pytorch_lightning', 'torch_geometric.transforms', 'torch_geometric.loader']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
