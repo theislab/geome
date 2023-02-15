@@ -1,11 +1,6 @@
-import mock
 import sys
 from datetime import datetime
 from pathlib import Path
-
-MOCK_MODULES = ['torch', 'torch_geometric', 'torch_geometric.data', 'squidpy', 'pytorch_lightning', 'torch_geometric.transforms', 'torch_geometric.loader']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -18,13 +13,18 @@ for mod_name in MOCK_MODULES:
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "extensions"))
 
+
+# Mock imports
+autodoc_mock_imports = ["torch","torch_geometric","squidpy","pytorch_lightning"]
+
+
 # -- Project information -----------------------------------------------------
 
 #info = metadata("gpu_spatial_graph_pipeline")
 #project_name = info["Name"]
 project_name = "gpu_spatial_graph_pipeline"
 #author = info["Author"]
-author = "Selman Ozleyan, Chelsea Bright, Marcella Toth"
+author = "Selman Ozleyen, Chelsea Bright, Marcella Toth"
 copyright = f"{datetime.now():%Y}, {author}."
 #version = info["Version"]
 version = "0.1"
