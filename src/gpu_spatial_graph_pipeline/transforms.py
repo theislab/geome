@@ -1,7 +1,7 @@
 import numpy as np
 import squidpy as sq
 import pandas as pd
-from typing import Any
+from typing import Any, List
 
 
 def get_adjacency_from_adata(adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
@@ -44,7 +44,7 @@ def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
     return Xd
 
 
-def add_design_matrix (adata: Any, xl_name: str, xc_name: str, output_name: str) -> None:
+def add_design_matrix(adata: Any, xl_name: str, xc_name: str, output_name: str) -> None:
     """Adds the design matrix to the given AnnData object in the specified field.
 
     Args:
@@ -84,7 +84,7 @@ def get_from_address(adata: Any, address: str) -> Any:
     return obj
 
 
-def categorize_obs(adata: Any, obs_list: list[str]) -> None:
+def categorize_obs(adata: Any, obs_list: List[str]) -> None:
     """Converts the given list of observation columns in the AnnData object to categorical.
 
     Args:
@@ -92,4 +92,4 @@ def categorize_obs(adata: Any, obs_list: list[str]) -> None:
         obs_list (list[str]): The list of observation columns to convert to categorical.
     """
     for cat in obs_list:
-        adata.obs[cat] = adata.obs[cat].astype('category')
+        adata.obs[cat] = adata.obs[cat].astype("category")

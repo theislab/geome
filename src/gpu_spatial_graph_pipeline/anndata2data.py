@@ -4,7 +4,7 @@ import numpy as np
 from torch_geometric.data import Data
 from scipy import sparse
 from abc import ABC, abstractmethod
-from .utils.transforms import get_from_address, get_adjacency_from_adata
+from .transforms import get_from_address, get_adjacency_from_adata
 from typing import Optional, List, Callable, Any, Dict, Union
 
 
@@ -15,7 +15,7 @@ class AnnData2Data(ABC):
         adata_iter: Optional[Callable[[Any], Any]] = None,
         preprocess: Optional[List[Callable[[Any, Dict[str, List[str]]], None]]] = None,
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """
         Initializes an AnnData to PyTorch Data object converter.
@@ -26,10 +26,10 @@ class AnnData2Data(ABC):
                 (i.e., `fields[field_name] = ['attribute/key', 'attribute/key', ...]`).
                 (e.g.,  'features':['obs/Cluster_preprocessed','obs/donor','obsm/design_matrix'],
                         'labels':['X']').
-            adata_iter: A function that returns an iterable of AnnData objects. 
+            adata_iter: A function that returns an iterable of AnnData objects.
                 This function will be used to extract multiple sub-AnnData objects from a larger AnnData object.
                 If set to None, the object will assume adata_iter returns only the input AnnData object.
-            preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and 
+            preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
                 perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
             *args: Any additional arguments to be passed to subclass constructors.
             **kwargs: Any additional keyword arguments to be passed to subclass constructors.
@@ -132,11 +132,11 @@ class AnnData2Data(ABC):
 
 class AnnData2DataDefault(AnnData2Data):
     def __init__(
-        self, 
-        fields: Dict[str, List[str]], 
+        self,
+        fields: Dict[str, List[str]],
         adata_iter: Union[None, Callable[[Any], Any]] = None,
         preprocess: Union[None, List[Callable[[Any], Any]]] = None,
-        yields_edge_index: bool = True
+        yields_edge_index: bool = True,
     ) -> None:
         """
         Convert anndata object into a dictionary of arrays.
@@ -165,14 +165,10 @@ class AnnData2DataDefault(AnnData2Data):
         self._preprocess = [AnnData2DataDefault.convert_to_array]
         # Add preprocessing of the addresses to last.
         # So that get_as_array works properly.
-        self._preprocess = (
-            preprocess if preprocess is not None else []
-        ) + self._preprocess
+        self._preprocess = (preprocess if preprocess is not None else []) + self._preprocess
         self.yields_edge_index = yields_edge_index
 
-    def get_adj_matrix(
-        self, adata: Any, *args: Any, **kwargs: Any
-    ) -> np.ndarray:
+    def get_adj_matrix(self, adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
         """Helper function to create an adjacency matrix depending on the anndata object.
 
         Args:
@@ -186,9 +182,7 @@ class AnnData2DataDefault(AnnData2Data):
         # Get adjacency matrices
         return get_adjacency_from_adata(adata, *args, **kwargs)
 
-    def array_from_address(
-        self, adata: Any, address: str
-    ) -> Union[np.ndarray, sparse.spmatrix]:
+    def array_from_address(self, adata: Any, address: str) -> Union[np.ndarray, sparse.spmatrix]:
         """Return the array corresponding to the given address.
 
         This version assumes the addresses are stored on adata.uns.
@@ -206,7 +200,7 @@ class AnnData2DataDefault(AnnData2Data):
     @staticmethod
     def convert_to_array(adata: Any, fields: Dict[str, List[str]]) -> None:
         """
-        Store processed data in `obsm` field of `adata`. 
+        Store processed data in `obsm` field of `adata`.
         Store the new address for each processed data in `uns` field of `adata`.
 
         Parameters
@@ -223,7 +217,6 @@ class AnnData2DataDefault(AnnData2Data):
         adata.uns["processed_index"] = dict()
 
         for _, addresses in fields.items():
-
             for address in addresses:
                 last_attr = address.split("/")[-1]
                 save_name = last_attr + "_processed"
@@ -267,7 +260,8 @@ class AnnData2DataByCategory(AnnData2DataDefault):
     adata_iter : callable
         Function to iterate over `adata` by category.
     """
-    def __init__(self, fields: dict, category: str, preprocess=None, yields_edge_index: bool=True):
+
+    def __init__(self, fields: dict, category: str, preprocess=None, yields_edge_index: bool = True):
         """
         Initializes the class.
 
@@ -284,9 +278,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
         """
         super().__init__(
             fields=fields,
-            adata_iter=lambda x: AnnData2DataByCategory.adata_iter_category(
-                x, category
-            ),
+            adata_iter=lambda x: AnnData2DataByCategory.adata_iter_category(x, category),
             preprocess=preprocess,
             yields_edge_index=yields_edge_index,
         )

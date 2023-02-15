@@ -1,5 +1,0 @@
-torch
-torch_geometric
-pytorch-lightning
-sklearn
-pre-commit
