@@ -13,7 +13,7 @@ In addition to the packages needed to _use_ this package, you need additional py
 the documentation_. It's easy to install them using `pip`:
 
 ```bash
-cd gpu-spatial-graph-pipeline
+cd gpu_spatial_graph_pipeline
 pip install -e ".[dev,test,doc]"
 ```
 

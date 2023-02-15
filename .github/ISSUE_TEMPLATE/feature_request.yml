@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a new feature for gpu-spatial-graph-pipeline
+description: Propose a new feature for gpu_spatial_graph_pipeline
 labels: enhancement
 body:
     - type: textarea

@@ -1,10 +1,10 @@
 import pytest
 
-import gpu-spatial-graph-pipeline
+import gpu_spatial_graph_pipeline
 
 
 def test_package_has_version():
-    gpu-spatial-graph-pipeline.__version__
+    gpu_spatial_graph_pipeline.__version__
 
 
 @pytest.mark.skip(reason="This decorator should be removed when test passes.")

@@ -7,27 +7,23 @@
 # -- Path setup --------------------------------------------------------------
 import sys
 from datetime import datetime
-from importlib.metadata import metadata
 from pathlib import Path
-import os
+
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "extensions"))
-HERE2 = HERE.parent
-sys.path.insert(0, str(HERE2 / "src"))
-
 
 # -- Project information -----------------------------------------------------
 
-#info = metadata("gpu-spatial-graph-pipeline")
+#info = metadata("gpu_spatial_graph_pipeline")
 #project_name = info["Name"]
-project_name = "gpu-spatial-graph-pipeline"
+project_name = "gpu_spatial_graph_pipeline"
 #author = info["Author"]
 author = "Selman Ozleyan, Chelsea Bright, Marcella Toth"
 copyright = f"{datetime.now():%Y}, {author}."
 #version = info["Version"]
 version = "0.1"
-repository_url = f"https://github.com/tothmarcella/{project_name}"
+repository_url = f"https://github.com/theislab/gpu-spatial-graph-pipeline"
 
 # The full version, including alpha/beta/rc tags
 #release = info["Version"]
@@ -56,8 +52,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
-    #"sphinxcontrib.bibtex",
-    #"sphinx_autodoc_typehints",
+    "sphinxcontrib.bibtex",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.mathjax",
     "IPython.sphinxext.ipython_console_highlighting",
     *[p.stem for p in (HERE / "extensions").glob("*.py")],
