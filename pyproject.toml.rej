@@ -1,0 +1,10 @@
+diff a/pyproject.toml b/pyproject.toml	(rejected hunks)
+@@ -34,7 +33,7 @@ dev = [
+ ]
+ doc = [
+     "sphinx>=4",
+-    "sphinx-book-theme>=0.3.3",
++    "sphinx-book-theme>=1.0.0",
+     "myst-nb",
+     "sphinxcontrib-bibtex>=1.0.0",
+     "sphinx-autodoc-typehints",
