@@ -6,9 +6,17 @@ import torch.nn as nn
 import pytorch_lightning as pl
 import torch.optim as optim
 from sklearn.metrics import r2_score
-from gpu_spatial_graph_pipeline.models.modules.gnn_model import GNNModel
-from gpu_spatial_graph_pipeline.models.modules.mlp_model import MLPModel
-from gpu_spatial_graph_pipeline.utils.weights import init_weights
+from .modules.gnn_model import GNNModel
+from .modules.mlp_model import MLPModel
+import torch
+
+
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+        if m.bias is not None:
+            m.bias.data.fill_(0.01)
+
 
 
 class NonLinearNCEM(pl.LightningModule):
