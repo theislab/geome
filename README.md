@@ -64,7 +64,7 @@ This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter]
 > t.b.a
 
 [scverse-discourse]: https://discourse.scverse.org/
-[issue-tracker]: https://github.com/theislab/gpu_spatial_graph_pipeline/issues
-[changelog]: https://gpu_spatial_graph_pipeline.readthedocs.io/latest/changelog.html
-[link-docs]: https://gpu-spatial-graph-pipeline.readthedocs.io/en/latest/index.html
-[link-api]: https://gpu-spatial-graph-pipeline.readthedocs.io/en/latest/api.html
+[issue-tracker]: https://github.com/theislab/gpu-spatial-graph-pipeline/issues
+[changelog]: https://gpu-spatial-graph-pipeline.readthedocs.io/changelog.html
+[link-docs]: https://gpu-spatial-graph-pipeline.readthedocs.io/index.html
+[link-api]: https://gpu-spatial-graph-pipeline.readthedocs.io/api.html
