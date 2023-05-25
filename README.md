@@ -3,9 +3,9 @@
 [![Tests][badge-tests]][link-tests]
 [![Documentation][badge-docs]][link-docs]
 
-[badge-tests]: https://img.shields.io/github/actions/workflow/status/tothmarcella/gpu_spatial_graph_pipeline/test.yaml?branch=main
-[link-tests]: https://github.com/theislab/gpu_spatial_graph_pipeline/actions/workflows/test.yml
-[badge-docs]: https://img.shields.io/readthedocs/gpu_spatial_graph_pipeline
+[badge-tests]: https://img.shields.io/github/actions/workflow/status/theislab/gpu-spatial-graph-pipeline/test.yaml?branch=main
+[link-tests]: https://github.com/theislab/gpu-spatial_graph-pipeline/actions/workflows/test.yml
+[badge-docs]: https://img.shields.io/readthedocs/gpu-spatial-graph_pipeline
 
 The repo provides a set of tools for creating PyTorch Geometric (PyG) data objects from AnnData objects, which are commonly used for storing and manipulating single-cell genomics data. In addition, the repo includes functionality for creating PyTorch Lightning (PyTorch-Lightning) DataModule objects from the PyG data objects, which can be used to create graph neural network (GNN) data pipelines. The PyG data objects represent graphs, where the nodes represent cells and the edges represent relationships between the cells, and can be used to perform GNN tasks such as node classification, graph classification, and link prediction. The repo is written in Python and utilizes the PyTorch, PyTorch Geometric, and PyTorch-Lightning libraries.
 
