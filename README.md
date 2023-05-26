@@ -1,9 +1,9 @@
-# gpu_spatial_graph_pipeline
+# geome
 
 [![Tests][badge-tests]][link-tests]
 [![Documentation][badge-docs]][link-docs]
 
-[badge-tests]: https://img.shields.io/github/actions/workflow/status/theislab/gpu-spatial-graph-pipeline/test.yaml?branch=main
+[badge-tests]: https://img.shields.io/github/actions/workflow/status/theislab/geome/test.yaml?branch=main
 [link-tests]: https://github.com/theislab/gpu-spatial_graph-pipeline/actions/workflows/test.yml
 [badge-docs]: https://img.shields.io/readthedocs/gpu-spatial-graph_pipeline
 
@@ -20,20 +20,20 @@ Please refer to the [documentation][link-docs]. In particular, the
 You need to have Python 3.8 or newer installed on your system. If you don't have
 Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 
-There are several alternative options to install gpu_spatial_graph_pipeline:
+There are several alternative options to install geome:
 
 <!--
-1) Install the latest release of `gpu_spatial_graph_pipeline` from `PyPI <https://pypi.org/project/gpu_spatial_graph_pipeline/>`_:
+1) Install the latest release of `geome` from `PyPI <https://pypi.org/project/geome/>`_:
 
 ```bash
-pip install gpu_spatial_graph_pipeline
+pip install geome
 ```
 -->
 
 1. Install the latest development version:
 
 ```bash
-pip install git+https://github.com/theislab/gpu_spatial_graph_pipeline.git@main
+pip install git+https://github.com/theislab/geome.git@main
 ```
 
 ## Release notes
@@ -56,7 +56,7 @@ This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter]
 [@cjolowicz]: https://github.com/cjolowicz
 [pypi]: https://pypi.org/
 [hypermodern python cookiecutter]: https://github.com/cjolowicz/cookiecutter-hypermodern-python
-[file an issue]: https://github.com/theislab/gpu_spatial_graph_pipeline/issues
+[file an issue]: https://github.com/theislab/geome/issues
 [pip]: https://pip.pypa.io/
 
 ## Citation
@@ -64,7 +64,7 @@ This project was generated from [@cjolowicz]'s [Hypermodern Python Cookiecutter]
 > t.b.a
 
 [scverse-discourse]: https://discourse.scverse.org/
-[issue-tracker]: https://github.com/theislab/gpu-spatial-graph-pipeline/issues
-[changelog]: https://gpu-spatial-graph-pipeline.readthedocs.io/changelog.html
-[link-docs]: https://gpu-spatial-graph-pipeline.readthedocs.io/
-[link-api]: https://gpu-spatial-graph-pipeline.readthedocs.io/en/latest/api.html
+[issue-tracker]: https://github.com/theislab/geome/issues
+[changelog]: https://geome.readthedocs.io/changelog.html
+[link-docs]: https://geome.readthedocs.io/
+[link-api]: https://geome.readthedocs.io/en/latest/api.html

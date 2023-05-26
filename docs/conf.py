@@ -20,15 +20,15 @@ autodoc_mock_imports = ["torch","torch_geometric","squidpy","pytorch_lightning"]
 
 # -- Project information -----------------------------------------------------
 
-#info = metadata("gpu_spatial_graph_pipeline")
+#info = metadata("geome")
 #project_name = info["Name"]
-project_name = "gpu_spatial_graph_pipeline"
+project_name = "geome"
 #author = info["Author"]
 author = "Selman Ozleyen, Chelsea Bright, Marcella Toth"
 copyright = f"{datetime.now():%Y}, {author}."
 #version = info["Version"]
 version = "0.1"
-repository_url = f"https://github.com/theislab/gpu-spatial-graph-pipeline"
+repository_url = f"https://github.com/theislab/geome"
 
 # The full version, including alpha/beta/rc tags
 #release = info["Version"]

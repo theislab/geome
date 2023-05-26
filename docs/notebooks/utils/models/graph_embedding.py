@@ -3,7 +3,7 @@ Graph VAE module
 g(A,X) from the paper
 """
 import torch
-from gpu_spatial_graph_pipeline.models.modules.graph_ae import GraphAE
+from geome.models.modules.graph_ae import GraphAE
 #from models.modules.graph_ae import GraphAE
 import pytorch_lightning as pl
 from torch_geometric.data import Batch

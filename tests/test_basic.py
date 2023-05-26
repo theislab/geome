@@ -1,6 +1,6 @@
 import pytest
 
-import gpu_spatial_graph_pipeline
+import geome
 
 
 def test_example():
