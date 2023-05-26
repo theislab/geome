@@ -3,7 +3,7 @@
 [![Tests][badge-tests]][link-tests]
 [![Documentation][badge-docs]][link-docs]
 
-[badge-tests]: https://img.shields.io/github/actions/workflow/status/theislab/geome/test.yaml?branch=main
+[badge-tests]: https://img.shields.io/github/actions/workflow/status/theislab/geome/build.yaml?branch=main
 [link-tests]: https://github.com/theislab/geome/actions/workflows/build.yaml
 [badge-docs]: https://img.shields.io/readthedocs/gpu-spatial-graph-pipeline
 
