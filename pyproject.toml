@@ -5,7 +5,7 @@ requires = ["hatchling"]
 [project]
 name = "geome"
 version = "0.0.1"
-description = "This project speaks for itself"
+description = "Geometric Learning for Genome Data"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
