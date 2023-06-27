@@ -20,6 +20,13 @@ urls.Source = "https://github.com/theislab/geome"
 urls.Home-page = "https://github.com/theislab/geome"
 dependencies = [
     "anndata",
+    "torch",
+    "torch_geometric",
+    "squidpy",
+    "scipy",
+    "numpy",
+    "pandas",
+    "pytorch_lightning",
     # for debug logging (referenced from the issue template)
     "session-info"
 ]
