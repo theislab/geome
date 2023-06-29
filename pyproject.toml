@@ -14,7 +14,8 @@ authors = [
 ]
 maintainers = [
     {name = "Marcella Toth", email = "toth.marcella@gmail.com"},
-    {name = "Selman Ozleyen", email = "syozleyen@gmail.com"}
+    {name = "Selman Ozleyen", email = "syozleyen@gmail.com"},
+    {name = "Chelsea Bright", email = "chels.alex.bright@gmail.com"}
 ]
 urls.Documentation = "https://geome.readthedocs.io/"
 urls.Source = "https://github.com/theislab/geome"
