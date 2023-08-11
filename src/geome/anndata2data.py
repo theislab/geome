@@ -1,11 +1,13 @@
-import torch
-import pandas as pd
-import numpy as np
-from torch_geometric.data import Data
-from scipy import sparse
 from abc import ABC, abstractmethod
-from .transforms import get_from_address, get_adjacency_from_adata
-from typing import Optional, List, Callable, Any, Dict, Union
+from typing import Any, Callable, Dict, List, Optional, Union
+
+import numpy as np
+import pandas as pd
+import torch
+from scipy import sparse
+from torch_geometric.data import Data
+
+from .transforms import get_adjacency_from_adata, get_from_address
 
 
 class AnnData2Data(ABC):
@@ -17,22 +19,22 @@ class AnnData2Data(ABC):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        """
-        Initializes an AnnData to PyTorch Data object converter.
+        """Initializes an AnnData to PyTorch Data object converter.
 
         Args:
-            fields: A dictionary that maps field names to a list of addresses.
-                Each address specifies the path to a numpy array in the AnnData object
-                (i.e., `fields[field_name] = ['attribute/key', 'attribute/key', ...]`).
-                (e.g.,  'features':['obs/Cluster_preprocessed','obs/donor','obsm/design_matrix'],
-                        'labels':['X']').
-            adata_iter: A function that returns an iterable of AnnData objects.
-                This function will be used to extract multiple sub-AnnData objects from a larger AnnData object.
-                If set to None, the object will assume adata_iter returns only the input AnnData object.
-            preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
-                perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
-            *args: Any additional arguments to be passed to subclass constructors.
-            **kwargs: Any additional keyword arguments to be passed to subclass constructors.
+        ----
+        fields: A dictionary that maps field names to a list of addresses.
+            Each address specifies the path to a numpy array in the AnnData object
+            (i.e., `fields[field_name] = ['attribute/key', 'attribute/key', ...]`).
+            (e.g.,  'features':['obs/Cluster_preprocessed','obs/donor','obsm/design_matrix'],
+                    'labels':['X']').
+        adata_iter: A function that returns an iterable of AnnData objects.
+            This function will be used to extract multiple sub-AnnData objects from a larger AnnData object.
+            If set to None, the object will assume adata_iter returns only the input AnnData object.
+        preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
+            perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
+        *args: Any additional arguments to be passed to subclass constructors.
+        **kwargs: Any additional keyword arguments to be passed to subclass constructors.
         """
         self._adata_iter = adata_iter
         self._preprocess = preprocess
@@ -40,26 +42,28 @@ class AnnData2Data(ABC):
 
     @abstractmethod
     def get_adj_matrix(self, adata: Any, *args: Any, **kwargs: Any) -> Any:
-        """
-        Abstract method for computing adjacency matrix from AnnData object.
+        """Abstract method for computing adjacency matrix from AnnData object.
 
         Args:
+        ----
             adata: AnnData object.
 
         Returns:
+        -------
             Adjacency matrix.
         """
         pass
 
     def get_edge_index(self, adata: Any, adj_matrix: Any) -> Any:
-        """
-        Computes edge index tensor from adjacency matrix.
+        """Computes edge index tensor from adjacency matrix.
 
         Args:
+        ----
             adata: AnnData object.
             adj_matrix: Adjacency matrix.
 
         Returns:
+        -------
             Edge index tensor.
         """
         nodes1, nodes2 = adj_matrix.nonzero()
@@ -72,27 +76,29 @@ class AnnData2Data(ABC):
 
     @abstractmethod
     def array_from_address(self, adata: Any, address: str, *args: Any, **kwargs: Any) -> np.ndarray:
-        """
-        Abstract method for retrieving a numpy array from an AnnData object.
+        """Abstract method for retrieving a numpy array from an AnnData object.
 
         Args:
-            adata: AnnData object.
-            address: Tuple of key and attribute for the numpy array.
+        ----
+        adata: AnnData object.
+        address: Tuple of key and attribute for the numpy array.
 
         Returns:
+        -------
             Numpy array.
         """
         pass
 
     def create_data_obj(self, adata: Any, adj_matrix: Any) -> Data:
-        """
-        Creates a PyTorch Data object from an AnnData object.
+        """Creates a PyTorch Data object from an AnnData object.
 
         Args:
-            adata: AnnData object.
-            adj_matrix: Adjacency matrix.
+        ----
+        adata: AnnData object.
+        adj_matrix: Adjacency matrix.
 
         Returns:
+        -------
             PyTorch Data object.
         """
         obj = dict()
@@ -108,13 +114,14 @@ class AnnData2Data(ABC):
         return Data(**obj)
 
     def __call__(self, adata: Any) -> List[Any]:
-        """
-        Convert an AnnData object to a list of PyTorch compatible data objects.
+        """Convert an AnnData object to a list of PyTorch compatible data objects.
 
         Args:
-            adata: The AnnData object to be converted.
+        ----
+        adata: The AnnData object to be converted.
 
         Returns:
+        -------
             A list of PyTorch compatible data objects.
         """
         dataset = []
@@ -138,8 +145,7 @@ class AnnData2DataDefault(AnnData2Data):
         preprocess: Union[None, List[Callable[[Any], Any]]] = None,
         yields_edge_index: bool = True,
     ) -> None:
-        """
-        Convert anndata object into a dictionary of arrays.
+        """Convert anndata object into a dictionary of arrays.
 
         Assumes adata.obsp["adjacency_matrix_connectivities"] exists
         if not it is computed with sq.gr.spatial_neighbors.
@@ -152,12 +158,13 @@ class AnnData2DataDefault(AnnData2Data):
             }
 
         Args:
-            fields: A dictionary of field names and their addresses in the AnnData object.
-            adata_iter: An iterator function that returns an AnnData object.
-            preprocess: A list of functions to preprocess the input data.
-                This class by default adds a preprocessing step.
-                See the static method default_preprocess.
-            yields_edge_index: Whether to return the edge index of the adjacency matrix.
+        ----
+        fields: A dictionary of field names and their addresses in the AnnData object.
+        adata_iter: An iterator function that returns an AnnData object.
+        preprocess: A list of functions to preprocess the input data.
+            This class by default adds a preprocessing step.
+            See the static method default_preprocess.
+        yields_edge_index: Whether to return the edge index of the adjacency matrix.
         """
         super().__init__(fields, adata_iter, preprocess)
         # Default is the identity function.
@@ -172,11 +179,13 @@ class AnnData2DataDefault(AnnData2Data):
         """Helper function to create an adjacency matrix depending on the anndata object.
 
         Args:
-            adata: An AnnData object.
-            args: Additional arguments passed to the function get_adjacency_from_adata.
-            kwargs: Additional keyword arguments passed to the function get_adjacency_from_adata.
+        ----
+        adata: An AnnData object.
+        args: Additional arguments passed to the function get_adjacency_from_adata.
+        kwargs: Additional keyword arguments passed to the function get_adjacency_from_adata.
 
         Returns:
+        -------
             The adjacency matrix.
         """
         # Get adjacency matrices
@@ -188,10 +197,12 @@ class AnnData2DataDefault(AnnData2Data):
         This version assumes the addresses are stored on adata.uns.
 
         Args:
-            adata: An AnnData object.
-            address: The address of the field in the anndata object.
+        ----
+        adata: An AnnData object.
+        address: The address of the field in the anndata object.
 
         Returns:
+        -------
             A numpy array or a sparse matrix.
         """
         processed_address = adata.uns["processed_index"][address]
@@ -199,8 +210,8 @@ class AnnData2DataDefault(AnnData2Data):
 
     @staticmethod
     def convert_to_array(adata: Any, fields: Dict[str, List[str]]) -> None:
-        """
-        Store processed data in `obsm` field of `adata`.
+        """Store processed data in `obsm` field of `adata`.
+
         Store the new address for each processed data in `uns` field of `adata`.
 
         Parameters
@@ -214,7 +225,7 @@ class AnnData2DataDefault(AnnData2Data):
         -------
         None
         """
-        adata.uns["processed_index"] = dict()
+        adata.uns["processed_index"] = {}
 
         for _, addresses in fields.items():
             for address in addresses:
@@ -241,8 +252,7 @@ class AnnData2DataDefault(AnnData2Data):
 
 
 class AnnData2DataByCategory(AnnData2DataDefault):
-    """
-    A class to transform AnnData objects into Data objects by category.
+    """A class to transform AnnData objects into Data objects by category.
 
     Parameters
     ----------
@@ -262,8 +272,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
     """
 
     def __init__(self, fields: dict, category: str, preprocess=None, yields_edge_index: bool = True):
-        """
-        Initializes the class.
+        """Initializes the class.
 
         Parameters
         ----------
@@ -285,8 +294,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
 
     @staticmethod
     def adata_iter_category(adata: Any, c: str) -> Any:
-        """
-        Iterates over `adata` by category.
+        """Iterates over `adata` by category.
 
         Parameters
         ----------
@@ -296,7 +304,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
             Column in `obs` containing the categories.
 
         Yields
-        -------
+        ------
         Any
             Data object by category.
         """
