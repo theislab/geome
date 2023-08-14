@@ -48,7 +48,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
         """
         super().__init__(
             fields=fields,
-            adata_iter=ToCategoryIterable(category, axis='obs'),
+            adata2iter=ToCategoryIterable(category, axis='obs'),
             preprocess=preprocess,
             yields_edge_index=yields_edge_index,
             transform=transform

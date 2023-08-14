@@ -21,5 +21,6 @@ class Categorize:
         obs_list (list[str]): The list of observation columns to convert to categorical.
         """
         for key in self.keys:
-            cats_df = getattr(adata, self.axis)[key].astype("category")
-            setattr(adata, self.axis, cats_df)
+            getattr(adata, self.axis)[key] = getattr(adata, self.axis)[key].astype("category")
+            # setattr(adata, self.axis, cats_df)
+        return adata

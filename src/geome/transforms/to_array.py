@@ -14,7 +14,7 @@ class ToArray:
     def __init__(self, fields: Dict[str, List[str]]):
         self.fields = fields
 
-    def __call__(adata: AnnData) -> AnnData:
+    def __call__(self, adata: AnnData) -> AnnData:
         """Store processed data in `obsm` field of `adata`.
 
         Store the new address for each processed data in `uns` field of `adata`.

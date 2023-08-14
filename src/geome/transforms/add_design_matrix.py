@@ -6,6 +6,28 @@ from anndata import AnnData
 from geome.utils import get_adjacency_from_adata, get_from_address
 
 
+def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
+    """Returns the design matrix given the adjacency matrix, cell types, and domains.
+
+    Args:
+    ----
+    A (np.ndarray): The adjacency matrix.
+    Xl (np.ndarray): The cell types.
+    Xc (np.ndarray): The domains.
+
+    Returns:
+    -------
+    np.ndarray: The design matrix.
+    """
+    N, L = Xl.shape
+    Xs = (A @ Xl > 0).astype(np.float64)  # N x L
+    Xts = np.einsum("bp,br->bpr", Xs, Xl).reshape((N, L * L))
+    Xts = (Xts > 0).astype(np.float64)
+    Xd = np.hstack((Xl, Xts, Xc))
+    return Xd
+
+
+
 class AddDesignMatrix:
     def __init__(self, xl_name: str, xc_name: str, output_name: str):
         self.xl_name = xl_name
@@ -44,23 +66,3 @@ class AddDesignMatrix:
         )
         return adata
 
-
-def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
-    """Returns the design matrix given the adjacency matrix, cell types, and domains.
-
-    Args:
-    ----
-    A (np.ndarray): The adjacency matrix.
-    Xl (np.ndarray): The cell types.
-    Xc (np.ndarray): The domains.
-
-    Returns:
-    -------
-    np.ndarray: The design matrix.
-    """
-    N, L = Xl.shape
-    Xs = (A @ Xl > 0).astype(np.float64)  # N x L
-    Xts = np.einsum("bp,br->bpr", Xs, Xl).reshape((N, L * L))
-    Xts = (Xts > 0).astype(np.float64)
-    Xd = np.hstack((Xl, Xts, Xc))
-    return Xd

@@ -43,8 +43,10 @@ class AnnData2DataDefault(AnnData2Data):
         super().__init__(fields, adata2iter, preprocess, transform)
         # Add preprocessing of the addresses to last.
         # So that get_as_array works properly.
-        preprocess = preprocess if preprocess is not None else []
-        self._preprocess = Compose([ToArray(fields), *preprocess])
+        preprocess_list = [ToArray(fields)]
+        if preprocess is not None:
+            preprocess_list = [preprocess, *preprocess_list]
+        self._preprocess = Compose(preprocess_list)
         self._transform = transform
         self._adata2iter = adata2iter
         self.yields_edge_index = yields_edge_index

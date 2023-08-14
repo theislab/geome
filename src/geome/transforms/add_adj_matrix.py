@@ -4,7 +4,7 @@ from anndata import AnnData
 from geome.utils import get_adjacency_from_adata
 
 
-class AddDesignMatrix:
+class AddAdjMatrix:
     def __init__(self, xl_name: str, xc_name: str, output_name: str):
         self.xl_name = xl_name
         self.xc_name = xc_name
