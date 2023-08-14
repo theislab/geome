@@ -1,7 +1,8 @@
+from typing import List, Literal, Optional, Sequence
+
 import pytorch_lightning as pl
-from typing import Literal, Optional, Sequence, List
-from torch_geometric.loader import NeighborLoader, DataListLoader
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import Batch, Data
+from torch_geometric.loader import DataListLoader, NeighborLoader
 from torch_geometric.transforms import RandomNodeSplit
 
 VALID_STAGE = {"fit", "test", None}
@@ -51,7 +52,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
         Args:
         ----
-            stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
+        stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
 
         Returns:
         -------
@@ -148,6 +149,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         ----
         data (List): list of data to be loaded
         shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        kwargs: arguments passed to the pyg.DataListLoader
 
         Returns:
         -------
@@ -164,6 +166,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         ----
         input_nodes (List): the input nodes
         shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        kwargs: arguments passed to the pyg.NeighborLoader
 
         Returns:
         -------
