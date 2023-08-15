@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
-from ..utils import get_from_address
+
+from geome.utils import get_from_address
 
 
 class ToArray:

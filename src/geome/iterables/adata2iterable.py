@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Union, Iterable
+from typing import Iterable
+
 from anndata import AnnData
+
 
 class AnnData2Iterable(ABC):
 

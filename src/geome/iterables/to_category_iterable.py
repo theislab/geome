@@ -1,12 +1,6 @@
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Union
+from typing import Literal
 
-import numpy as np
-import pandas as pd
-import torch
 from anndata import AnnData
-from scipy import sparse
-from torch_geometric.data import Data
 
 from .adata2iterable import AnnData2Iterable
 
