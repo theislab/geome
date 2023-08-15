@@ -1,8 +1,8 @@
 from anndata import AnnData
 
 from geome.utils import get_from_loc, set_to_loc
-
-
+import torch
+import scipy.sparse as sparse 
 class AddEdgeWeight:
     """Add the edge weights to the AnnData object.
 
@@ -35,7 +35,18 @@ class AddEdgeWeight:
         """
         weight_matrix = get_from_loc(adata, self.weight_matrix_loc)
         edge_index = get_from_loc(adata, f"uns/{self.edge_index_key}")
-        edge_weights = weight_matrix[edge_index[:, 0], edge_index[:, 1]]
+        edge_weights = torch.empty(0)
+        if edge_index.shape[1] != 0:
+            if sparse.issparse(weight_matrix):
+                # Convert to CSR format
+                csr_matrix = weight_matrix.tocsr()
+                edge_index_np = edge_index.numpy()
+                # Get the values
+                values = csr_matrix[edge_index_np[0], edge_index_np[1]].A1
+                # Convert the numpy array to a torch tensor
+                edge_weights = torch.tensor(values)
+            else:
+                edge_weights = weight_matrix[edge_index[0, :], edge_index[1, :]]
         set_to_loc(adata, f"uns/{self.edge_weight_key}", edge_weights, self.overwrite)
 
         return adata
