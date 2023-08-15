@@ -21,6 +21,7 @@ def get_from_loc(adata: AnnData, location: str) -> Any:
     """
     if location == "X":
         return adata.X
+    assert len(location.split("/")) == 2, f"Location must have only one delimiter {location}"
     axis, key = location.split("/")
 
     if key not in getattr(adata, axis, {}):

@@ -8,7 +8,7 @@ import pandas as pd
 from anndata import AnnData
 from scipy import sparse
 
-from geome.utils import get_from_address
+from geome.utils import get_from_loc
 
 
 class ToArray:
@@ -39,7 +39,7 @@ class ToArray:
                 save_name = last_attr + "_processed"
                 # TODO: Is adding a suffix a good idea?
 
-                obj = get_from_address(adata, address)
+                obj = get_from_loc(adata, address)
 
                 # if obj is categorical
                 if obj.dtype.name == "category":

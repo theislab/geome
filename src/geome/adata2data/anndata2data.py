@@ -37,21 +37,18 @@ class AnnData2Data(ABC):
         self._transform = transform
 
     @abstractmethod
-    def array_from_location(
-        self, adata: Any, location: str, *args: Any, **kwargs: Any
-    ) -> np.ndarray:
-        """Abstract method for retrieving a numpy array from an AnnData object.
+    def merge_field(self, adata:AnnData, field: str, locations: List[str]) -> torch.Tensor:
+        """Abstract method for merging multiple fields in an AnnData object.
 
         Args:
         ----
         adata: AnnData object.
-        location: Location of the numpy array in the AnnData object.
-        args: additional args
-        kwargs: additional args
+        field: Name of the new field.
+        locations: List of locations of the fields to be merged.
 
         Returns:
         -------
-            Numpy array.
+            Merged array corresponding to field.
         """
         pass
 
@@ -67,15 +64,8 @@ class AnnData2Data(ABC):
         PyTorch Data object.
         """
         obj = {}
-        if self.yields_edge_index:
-            obj["edge_index"] = self.get_edge_index(adata)
-
-        for field, addresses in self.fields.items():
-            arrs = []
-            for address in addresses:
-                arrs.append(self.array_from_address(adata, address))
-            obj[field] = torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
-
+        for field, locations in self.fields.items():
+            obj[field] = self.merge_field(adata, field, locations)
         return Data(**obj)
 
     def __call__(self, adata: Union[AnnData, Iterable[AnnData]]) -> List[Data]:

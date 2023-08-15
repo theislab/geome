@@ -1,9 +1,11 @@
-from typing import Any, Callable, Optional
+from typing import Callable, List, Optional
 
 import numpy as np
+import pandas as pd
+import torch
 from anndata import AnnData
+from scipy import sparse
 
-from geome.transforms import AddAdjMatrix, AddEdgeIndex, AddEdgeWeight, Compose
 from geome.utils import get_from_loc
 
 from .anndata2data import AnnData2Data
@@ -13,12 +15,9 @@ class AnnData2DataDefault(AnnData2Data):
     def __init__(
         self,
         fields: dict[str, list[str]],
-        adj_matrix_loc: str | None,
         adata2iter: Optional[Callable[[AnnData], AnnData]] = None,
         preprocess: Optional[list[Callable[[AnnData], AnnData]]] = None,
         transform: Optional[list[Callable[[AnnData], AnnData]]] = None,
-        edge_index_key: Optional[str] = 'edge_index',
-        edge_weight_key: Optional[str] = None
     ) -> None:
         """Convert anndata object into a dictionary of arrays.
 
@@ -42,40 +41,44 @@ class AnnData2DataDefault(AnnData2Data):
                     A default preprocessing step (AddAdjMatrix) is added if adj_matrix_loc is provided.
         transform: List of functions to transform the AnnData object after preprocessing.
         edge_index_key: Key for the edge index in the converted data. Defaults to 'edge_index'.
-        edge_weight_key: Key for the edge weights in the converted data. If provided, an AddEdgeWeight step is added.
         """
         super().__init__(fields, adata2iter, preprocess, transform)
-        preprocess_list = []
-        if adj_matrix_loc is not None:
-            preprocess_list.append(AddAdjMatrix(location=adj_matrix_loc, overwrite=False))
-        if preprocess is not None:
-            preprocess_list = [preprocess, *preprocess_list]
-        transform_list = []
-        if edge_index_key is not None:
-            transform_list.append(AddEdgeIndex(adj_matrix_loc, edge_index_key, overwrite=False))
-        if edge_weight_key is not None:
-            transform_list.append(AddEdgeWeight(adj_matrix_loc, edge_weight_key, overwrite=False))
-        if transform is not None:
-            transform_list = [*transform_list, transform]
-        self._preprocess = Compose(preprocess_list)
-        self._transform = Compose(transform_list)
+
+        self._preprocess = preprocess
+        self._transform = transform
         self._adata2iter = adata2iter
 
-    def array_from_location(
-        self, adata: Any, location: str
-    ) -> np.ndarray:
-        """Return the processed array corresponding to the given location.
-
-        This version assumes the addresses are stored on adata.uns.
+    def merge_field(self, adata: AnnData, field: str, locations: List[str]) -> torch.Tensor:
+        """Abstract method for merging multiple fields in an AnnData object.
 
         Args:
         ----
-        adata: An AnnData object.
-        location: The location of the field in the anndata object.
+        adata: AnnData object.
+        field: Name of the new field.
+        locations: List of locations of the fields to be merged.
 
         Returns:
         -------
-        A numpy array.
+            Merged array corresponding to field.
         """
-        processed_location = adata.uns["processed_index"][location]
-        return get_from_loc(adata, processed_location)
+        if len(locations) == 1:
+            obj = get_from_loc(adata, locations[0])
+            return self._convert_to_array(obj)
+        else:
+            arrs = []
+            for loc in locations:
+                arrs.append(self._convert_to_array(get_from_loc(adata, loc)))
+            return torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
+
+    def _convert_to_array(self, obj):
+        # if obj is categorical
+        if isinstance(obj, torch.Tensor):
+            return obj
+        if obj.dtype.name == "category":
+            return pd.get_dummies(obj).to_numpy()
+        elif not np.issubdtype(obj.dtype, np.number):
+            return obj.astype(np.float)
+        elif sparse.issparse(obj):
+            return np.array(obj.todense())
+        else:
+            return obj

@@ -12,11 +12,8 @@ class AnnData2DataByCategory(AnnData2DataDefault):
         self,
         fields: dict[str, list[str]],
         category: str,
-        adj_matrix_loc: str | None,
         preprocess: Optional[list[Callable[[AnnData], AnnData]]] = None,
         transform: Optional[list[Callable[[AnnData], AnnData]]] = None,
-        edge_index_key: Optional[str] = 'edge_index',
-        edge_weight_key: Optional[str] = None
     ):
         """Initializes the class.
 
@@ -32,14 +29,10 @@ class AnnData2DataByCategory(AnnData2DataDefault):
                     A default preprocessing step (AddAdjMatrix) is added if adj_matrix_loc is provided.
         transform: List of functions to transform the AnnData object after preprocessing.
         edge_index_key: Key for the edge index in the converted data. Defaults to 'edge_index'.
-        edge_weight_key: Key for the edge weights in the converted data. If provided, an AddEdgeWeight step is added.
         """
         super().__init__(
             fields=fields,
             adata2iter=ToCategoryIterable(category, axis='obs'),
             preprocess=preprocess,
             transform=transform,
-            adj_matrix_loc=adj_matrix_loc,
-            edge_index_key=edge_index_key,
-            edge_weight_key=edge_weight_key
         )
