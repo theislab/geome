@@ -23,18 +23,13 @@ class AnnData2Data(ABC):
 
         Args:
         ----
-        fields: A dictionary that maps field names to a list of addresses.
-            Each address specifies the path to a numpy array in the AnnData object
-            (i.e., `fields[field_name] = ['attribute/key', 'attribute/key', ...]`).
-            (e.g.,  'features':['obs/Cluster_preprocessed','obs/donor','obsm/design_matrix'],
-                    'labels':['X']').
-        adata_iter: A function that returns an iterable of AnnData objects.
-            This function will be used to extract multiple sub-AnnData objects from a larger AnnData object.
-            If set to None, the object will assume adata_iter returns only the input AnnData object.
-        preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
-            perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
-        *args: Any additional arguments to be passed to subclass constructors.
-        **kwargs: Any additional keyword arguments to be passed to subclass constructors.
+        fields: Dictionary mapping field names to addresses in the AnnData object. Each address points to a numpy array.
+        adata2iterable: Optional function that returns an iterable of sub-adata objects from a larger AnnData object.
+                        If not provided, it's assumed that the input AnnData object is directly converted.
+        preprocess: Optional function to preprocess the AnnData object before conversion.
+        transform: Optional function to apply transformations on the AnnData object after preprocessing.
+        *args: Additional positional arguments for subclasses.
+        **kwargs: Additional keyword arguments for subclasses.
         """
         self._adata2iterable = adata2iterable
         self._preprocess = preprocess
@@ -42,15 +37,15 @@ class AnnData2Data(ABC):
         self._transform = transform
 
     @abstractmethod
-    def array_from_address(
-        self, adata: Any, address: str, *args: Any, **kwargs: Any
+    def array_from_location(
+        self, adata: Any, location: str, *args: Any, **kwargs: Any
     ) -> np.ndarray:
         """Abstract method for retrieving a numpy array from an AnnData object.
 
         Args:
         ----
         adata: AnnData object.
-        address: Tuple of key and attribute for the numpy array.
+        location: Location of the numpy array in the AnnData object.
         args: additional args
         kwargs: additional args
 
@@ -66,11 +61,10 @@ class AnnData2Data(ABC):
         Args:
         ----
         adata: AnnData object.
-        adj_matrix: Adjacency matrix.
 
         Returns:
         -------
-            PyTorch Data object.
+        PyTorch Data object.
         """
         obj = {}
         if self.yields_edge_index:
@@ -93,7 +87,7 @@ class AnnData2Data(ABC):
 
         Returns:
         -------
-            A list of PyTorch compatible data objects.
+        A list of PyTorch compatible data objects.
         """
         dataset = []
         # do the given preprocessing steps.

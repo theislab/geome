@@ -18,6 +18,7 @@ class AddAdjMatrix:
     Attributes:
     ----------
         location (str): The location where the adjacency matrix will be added.
+        overwrite (bool): Whether to overwrite the existing adjacency matrix.
 
     Methods:
     -------
@@ -31,6 +32,7 @@ class AddAdjMatrix:
         Args:
         ----
         location (str): The location to add the adjacency matrix to.
+        overwrite (bool): Whether to overwrite the existing adjacency matrix.
         """
         check_adj_matrix_loc(location)
         self.location = location

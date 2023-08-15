@@ -34,12 +34,15 @@ class AnnData2DataDefault(AnnData2Data):
 
         Args:
         ----
-        fields: A dictionary of field names and their addresses in the AnnData object.
-        adata_iter: An iterator function that returns an AnnData object.
-        preprocess: A list of functions to preprocess the input data.
-            This class by default adds a preprocessing step.
-            See the static method default_preprocess.
-        yields_edge_index: Whether to return the edge index of the adjacency matrix.
+        fields: Dictionary that maps field names to their locations in the AnnData object.
+        adj_matrix_loc: Location of the adjacency matrix within the AnnData object.
+        adata2iter: Optional function that converts AnnData objects to iterable.
+                    If not given will assume that an iterable is already provided.
+        preprocess: List of functions to preprocess the AnnData object before conversion.
+                    A default preprocessing step (AddAdjMatrix) is added if adj_matrix_loc is provided.
+        transform: List of functions to transform the AnnData object after preprocessing.
+        edge_index_key: Key for the edge index in the converted data. Defaults to 'edge_index'.
+        edge_weight_key: Key for the edge weights in the converted data. If provided, an AddEdgeWeight step is added.
         """
         super().__init__(fields, adata2iter, preprocess, transform)
         preprocess_list = []
@@ -58,8 +61,7 @@ class AnnData2DataDefault(AnnData2Data):
         self._transform = Compose(transform_list)
         self._adata2iter = adata2iter
 
-
-    def array_from_address(
+    def array_from_location(
         self, adata: Any, location: str
     ) -> np.ndarray:
         """Return the processed array corresponding to the given location.
@@ -73,7 +75,7 @@ class AnnData2DataDefault(AnnData2Data):
 
         Returns:
         -------
-            A numpy array.
+        A numpy array.
         """
         processed_location = adata.uns["processed_index"][location]
         return get_from_loc(adata, processed_location)
