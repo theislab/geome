@@ -1,6 +1,8 @@
+from typing import Any, Callable, Union, Optional
 from geome.iterables import ToCategoryIterable
 
 from .default import AnnData2DataDefault
+from anndata import AnnData
 
 
 class AnnData2DataByCategory(AnnData2DataDefault):
@@ -27,11 +29,13 @@ class AnnData2DataByCategory(AnnData2DataDefault):
 
     def __init__(
         self,
-        fields: dict,
+        fields: dict[str, list[str]],
         category: str,
-        preprocess=None,
-        transform=None,
-        yields_edge_index: bool = True,
+        adj_matrix_loc: str | None,
+        preprocess: Optional[list[Callable[[AnnData], AnnData]]] = None,
+        transform: Optional[list[Callable[[AnnData], AnnData]]] = None,
+        edge_index_key: Optional[str] = 'edge_index',
+        edge_weight_key: Optional[str] = None
     ):
         """Initializes the class.
 
@@ -50,6 +54,8 @@ class AnnData2DataByCategory(AnnData2DataDefault):
             fields=fields,
             adata2iter=ToCategoryIterable(category, axis='obs'),
             preprocess=preprocess,
-            yields_edge_index=yields_edge_index,
-            transform=transform
+            transform=transform,
+            adj_matrix_loc=adj_matrix_loc,
+            edge_index_key=edge_index_key,
+            edge_weight_key=edge_weight_key
         )

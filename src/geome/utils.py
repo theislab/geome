@@ -1,56 +1,79 @@
 from typing import Any
 
-import numpy as np
-import squidpy as sq
 from anndata import AnnData
 
 
-def get_from_address(adata: AnnData, address: str) -> Any:
-    """Gets the object at the given address from the AnnData object.
+def get_from_loc(adata: AnnData, location: str) -> Any:
+    """Get a value from a specified location in the AnnData object.
 
     Args:
     ----
-    adata: The AnnData object.
-    address (str): The address of the object.
+    adata (AnnData): The AnnData object.
+    location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
 
     Returns:
     -------
-    Any: The object at the given address.
+        Any: The value at the specified location.
+
+    Raises:
+    ------
+        KeyError: If the specified location does not exist in the AnnData object.
     """
-    # TODO check if address exists
-    # TODO change function location
-    attrs = address.split("/")
-    assert len(attrs) <= 2, "assumes at most one delimiter"
+    if location == "X":
+        return adata.X
+    axis, key = location.split("/")
 
-    obj = adata
-    for attr in attrs:
-        if hasattr(obj, attr):
-            obj = getattr(obj, attr)  # obj.attr
-        else:
-            obj = obj[attr]
-    return obj
-
-
-def get_adjacency_from_adata(adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
-    """Returns the spatial connectivities matrix from an AnnData object.
-
-    Args:
-    ----
-    adata: The AnnData object.
-
-    Returns:
-    -------
-    np.ndarray: The spatial connectivities matrix.
-    """
-    if "adjacency_matrix_connectivities" in adata.obsp.keys():
-        spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
-    else:
-        spatial_connectivities, _ = sq.gr.spatial_neighbors(
-            adata,
-            coord_type="generic",
-            key_added="spatial",
-            copy=True,
+    if key not in getattr(adata, axis, {}):
+        raise KeyError(
+            f"The specified key '{key}' does not exist in the '{axis}' of the AnnData object."
         )
-    return spatial_connectivities
+
+    return getattr(adata, axis)[key]
 
 
+def set_to_loc(adata: AnnData, location: str, value: Any, override: bool = False):
+    """Assign a value to a specified location in the AnnData object.
+
+    Args:
+    ----
+    adata (AnnData): The AnnData object.
+    location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
+    value (Any): The value to assign.
+    override (bool, optional): If set to True, will override the existing value at the location. Defaults to False.
+
+    Raises:
+    ------
+        ValueError: If the specified location already exists and override is set to False.
+    """
+    if location == "X":
+        if not override and hasattr(adata, "X"):
+            raise ValueError(
+                "The location 'X' already has data. To override, set the 'override' parameter to True."
+            )
+        adata.X = value
+    else:
+        axis, key = location.split("/")
+
+        if not override and key in getattr(adata, axis, {}):
+            raise ValueError(
+                f"The location '{location}' already has data. To override, set the 'override' parameter to True."
+            )
+
+        getattr(adata, axis)[key] = value
+
+
+def check_loc(location: str):
+    """Checks the correctness of the location format.
+
+    Args:
+    ----
+    location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
+
+    Raises:
+    ------
+        ValueError: If the location format is incorrect.
+    """
+    if location != "X":
+        parts = location.split("/")
+        if len(parts) != 2:
+            raise ValueError("Location must have only one delimiter '/'")

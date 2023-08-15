@@ -1,87 +1,65 @@
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 from anndata import AnnData
-from scipy import sparse
 
-from geome.transforms import Compose, ToArray
-from geome.utils import get_adjacency_from_adata, get_from_address
+from geome.transforms import Compose, AddAdjMatrix, AddEdgeIndex, AddEdgeWeight
+from geome.utils import get_from_loc
 
 from .anndata2data import AnnData2Data
 
 
 class AnnData2DataDefault(AnnData2Data):
+    """
+    Default converter for transforming AnnData objects into PyTorch Geometric Data objects.
+
+    This class provides a standard implementation for converting AnnData objects into PyTorch Geometric Data objects.
+    It assumes certain default structures and attributes within the AnnData object.
+    """
+
     def __init__(
         self,
         fields: Dict[str, List[str]],
-        adata2iter: Union[None, Callable[[AnnData], AnnData]] = None,
-        preprocess: Union[None, List[Callable[[AnnData], AnnData]]] = None,
-        transform: Union[None, List[Callable[[AnnData], AnnData]]] = None,
-        yields_edge_index: bool = True,
+        adj_matrix_loc: Optional[str],
+        adata2iter: Optional[Callable[[AnnData], AnnData]] = None,
+        preprocess: Optional[List[Callable[[AnnData], AnnData]]] = None,
+        transform: Optional[List[Callable[[AnnData], AnnData]]] = None,
+        edge_index_key: Optional[str] = 'edge_index',
+        edge_weight_key: Optional[str] = None
     ) -> None:
-        """Convert anndata object into a dictionary of arrays.
-
-        Assumes adata.obsp["adjacency_matrix_connectivities"] exists
-        if not it is computed with sq.gr.spatial_neighbors.
-        Works for squidpy datasets and the datasets of this package.
-
-        Example for fields argument:
-            fields = {
-                'features': ['obs/Cluster', 'obs/donor'],
-                'labels': ['X']
-            }
+        """
+        Initialize the default converter.
 
         Args:
-        ----
-        fields: A dictionary of field names and their addresses in the AnnData object.
-        adata_iter: An iterator function that returns an AnnData object.
-        preprocess: A list of functions to preprocess the input data.
-            This class by default adds a preprocessing step.
-            See the static method default_preprocess.
-        yields_edge_index: Whether to return the edge index of the adjacency matrix.
+            fields (Dict[str, List[str]]): Dictionary mapping field names to addresses in the AnnData object.
+            adj_matrix_loc (str, optional): Location of the adjacency matrix in the AnnData object.
+            adata2iter (Callable, optional): Function returning an iterable of AnnData objects.
+            preprocess (List[Callable], optional): List of functions for preprocessing the AnnData object.
+            transform (List[Callable], optional): List of functions for transforming the AnnData object.
+            edge_index_key (str, optional): Key for storing the edge index.
+            edge_weight_key (str, optional): Key for storing the edge weight.
         """
         super().__init__(fields, adata2iter, preprocess, transform)
-        # Add preprocessing of the addresses to last.
-        # So that get_as_array works properly.
-        preprocess_list = [ToArray(fields)]
-        if preprocess is not None:
-            preprocess_list = [preprocess, *preprocess_list]
-        self._preprocess = Compose(preprocess_list)
-        self._transform = transform
+        preprocess_list = [AddAdjMatrix(location=adj_matrix_loc, overwrite=False)] if adj_matrix_loc else []
+        transform_list = [AddEdgeIndex(adj_matrix_loc, edge_index_key, overwrite=False)] if edge_index_key else []
+        if edge_weight_key:
+            transform_list.append(AddEdgeWeight(adj_matrix_loc, edge_weight_key, overwrite=False))
+        self._preprocess = Compose(preprocess_list) if preprocess_list else None
+        self._transform = Compose(transform_list) if transform_list else None
         self._adata2iter = adata2iter
-        self.yields_edge_index = yields_edge_index
-
-    def get_adj_matrix(self, adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
-        """Helper function to create an adjacency matrix depending on the anndata object.
-
-        Args:
-        ----
-        adata: An AnnData object.
-        args: Additional arguments passed to the function get_adjacency_from_adata.
-        kwargs: Additional keyword arguments passed to the function get_adjacency_from_adata.
-
-        Returns:
-        -------
-            The adjacency matrix.
-        """
-        # Get adjacency matrices
-        return get_adjacency_from_adata(adata, *args, **kwargs)
 
     def array_from_address(
-        self, adata: Any, address: str
-    ) -> Union[np.ndarray, sparse.spmatrix]:
-        """Return the array corresponding to the given address.
-
-        This version assumes the addresses are stored on adata.uns.
+        self, adata: AnnData, location: str
+    ) -> np.ndarray:
+        """
+        Retrieve the processed array based on the provided location.
 
         Args:
-        ----
-        adata: An AnnData object.
-        address: The address of the field in the anndata object.
+            adata (AnnData): The AnnData object containing the data.
+            location (str): Location of the field in the AnnData object.
 
         Returns:
-        -------
-            A numpy array or a sparse matrix.
+            np.ndarray: Processed array.
         """
-        processed_address = adata.uns["processed_index"][address]
-        return get_from_address(adata, processed_address)
+        processed_location = adata.uns["processed_index"][location]
+        return get_from_loc(adata, processed_location)

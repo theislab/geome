@@ -8,7 +8,12 @@ from torch_geometric.data import Data
 
 
 class AnnData2Data(ABC):
-    """Abstract class that transforms an iterable of AnnData to Pytorch Geometric Data object."""
+    """
+    Abstract class for transforming an iterable of AnnData to Pytorch Geometric Data object.
+
+    This class provides a blueprint for converting AnnData objects, commonly used in single-cell
+    genomics, into PyTorch Geometric Data objects suitable for graph-based machine learning.
+    """
 
     def __init__(
         self,
@@ -19,133 +24,75 @@ class AnnData2Data(ABC):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        """Initializes an AnnData to PyTorch Data object converter.
+        """
+        Initialize the converter from AnnData to PyTorch Data object.
 
         Args:
-        ----
-        fields: A dictionary that maps field names to a list of addresses.
-            Each address specifies the path to a numpy array in the AnnData object
-            (i.e., `fields[field_name] = ['attribute/key', 'attribute/key', ...]`).
-            (e.g.,  'features':['obs/Cluster_preprocessed','obs/donor','obsm/design_matrix'],
-                    'labels':['X']').
-        adata_iter: A function that returns an iterable of AnnData objects.
-            This function will be used to extract multiple sub-AnnData objects from a larger AnnData object.
-            If set to None, the object will assume adata_iter returns only the input AnnData object.
-        preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
-            perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
-        *args: Any additional arguments to be passed to subclass constructors.
-        **kwargs: Any additional keyword arguments to be passed to subclass constructors.
+            fields (Dict[str, List[str]]): Dictionary mapping field names to addresses in the AnnData object.
+            adata2iterable (Callable, optional): Function returning an iterable of AnnData objects.
+            preprocess (Callable, optional): Function for preprocessing the AnnData object before conversion.
+            transform (Callable, optional): Function for transforming the AnnData object after preprocessing.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
         """
         self._adata2iterable = adata2iterable
         self._preprocess = preprocess
         self.fields = fields
         self._transform = transform
-        self._edge_index = None
-
-    @abstractmethod
-    def get_adj_matrix(self, adata: AnnData) -> Any:
-        """Abstract method for computing adjacency matrix from AnnData object.
-
-        Args:
-        ----
-        adata: AnnData object.
-
-        Returns:
-        -------
-            Adjacency matrix.
-        """
-        pass
-
-    def get_edge_index(self, adata: AnnData) -> torch.Tensor:
-        """Computes edge index tensor from adjacency matrix.
-
-        Args:
-        ----
-        adata: AnnData object.
-        adj_matrix: Adjacency matrix.
-
-        Returns:
-        -------
-            Edge index tensor.
-        """
-        if self._edge_index is None:
-            nodes1, nodes2 = self.get_adj_matrix(adata).nonzero()
-            self._edge_index = torch.vstack(
-                [
-                    torch.from_numpy(nodes1).to(torch.long),
-                    torch.from_numpy(nodes2).to(torch.long),
-                ]
-            )
-        return self._edge_index
 
     @abstractmethod
     def array_from_address(
-        self, adata: Any, address: str, *args: Any, **kwargs: Any
+        self, adata: AnnData, address: str, *args: Any, **kwargs: Any
     ) -> np.ndarray:
-        """Abstract method for retrieving a numpy array from an AnnData object.
+        """
+        Retrieve a numpy array from an AnnData object based on the provided address.
 
         Args:
-        ----
-        adata: AnnData object.
-        address: Tuple of key and attribute for the numpy array.
-        args: additional args
-        kwargs: additional args
+            adata (AnnData): The AnnData object containing the data.
+            address (str): Address for the numpy array.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
 
         Returns:
-        -------
-            Numpy array.
+            np.ndarray: Retrieved array.
         """
         pass
 
     def create_data_obj(self, adata: AnnData) -> Data:
-        """Creates a PyTorch Data object from an AnnData object.
+        """
+        Convert an AnnData object to a PyTorch Data object.
 
         Args:
-        ----
-        adata: AnnData object.
-        adj_matrix: Adjacency matrix.
+            adata (AnnData): The AnnData object to be converted.
 
         Returns:
-        -------
-            PyTorch Data object.
+            Data: PyTorch Geometric Data object.
         """
         obj = {}
-        if self.yields_edge_index:
+        if hasattr(self, "yields_edge_index") and self.yields_edge_index:
             obj["edge_index"] = self.get_edge_index(adata)
 
         for field, addresses in self.fields.items():
-            arrs = []
-            for address in addresses:
-                arrs.append(self.array_from_address(adata, address))
+            arrs = [self.array_from_address(adata, address) for address in addresses]
             obj[field] = torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
 
         return Data(**obj)
 
     def __call__(self, adata: Union[AnnData, Iterable[AnnData]]) -> List[Data]:
-        """Convert an AnnData object to a list of PyTorch compatible data objects.
+        """
+        Convert an AnnData object to a list of PyTorch compatible data objects.
 
         Args:
-        ----
-        adata: The AnnData object to be converted.
+            adata (Union[AnnData, Iterable[AnnData]]): The AnnData object or iterable of AnnData objects.
 
         Returns:
-        -------
-            A list of PyTorch compatible data objects.
+            List[Data]: List of PyTorch Geometric Data objects.
         """
         dataset = []
-        # do the given preprocessing steps.
-        if self._preprocess is not None:
+        if self._preprocess:
             adata = self._preprocess(adata)
-        # convert adata to iterable if it is specified
-        adata_iter = adata
-        if self._adata2iterable is not None:
-            adata_iter = self._adata2iterable(adata)
+        adata_iter = self._adata2iterable(adata) if self._adata2iterable else [adata]
 
-        # iterate trough adata.
         for subadata in adata_iter:
-            if self._transform is not None:
-                subadata = self._transform(subadata)
-            data = self.create_data_obj(subadata)
-            dataset.append(data)
-
-        return dataset
+            if self._transform:
+                sub

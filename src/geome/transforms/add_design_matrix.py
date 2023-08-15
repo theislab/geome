@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 
-from geome.utils import get_adjacency_from_adata, get_from_address
+from geome.transforms.utils import check_adj_matrix_loc
+from geome.utils import check_loc, get_from_loc, set_to_loc
 
 
 def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
@@ -27,42 +28,33 @@ def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
     return Xd
 
 
-
 class AddDesignMatrix:
-    def __init__(self, xl_name: str, xc_name: str, output_name: str):
-        self.xl_name = xl_name
-        self.xc_name = xc_name
+    """Adds the design matrix defined in NCEM paper to adata.obsm."""
+
+    def __init__(self, xl_loc: str, xc_loc: str, adj_matrix_loc: str, output_name: str, overwrite: bool = False):
+        check_loc(xl_loc)
+        self.xl_loc = xl_loc
+        check_loc(xc_loc)
+        self.xc_loc = xc_loc
+        check_adj_matrix_loc(adj_matrix_loc)
+        self.adj_matrix_loc = adj_matrix_loc
         self.output_name = output_name
+        self.overwrite = overwrite
 
     def __call__(self, adata: AnnData) -> AnnData:
-        """Store processed data in `obsm` field of `adata`.
-
-        Store the new address for each processed data in `uns` field of `adata`.
-
-        Parameters
-        ----------
-        adata : AnnData
-            AnnData object.
-        fields : Dict[str, List[str]]
-            Dictionary of fields and their associated attributes.
-
-        Returns
-        -------
-        Processed adata
-        """
         """Adds the design matrix to the given AnnData object in the specified field.
 
         Args:
         ----
         adata: The AnnData object.
-        xl_name (str): The name of the field containing the cell types.
-        xc_name (str): The name of the field containing the domains.
+        xl_loc (str): The name of the field containing the cell types.
+        xc_loc (str): The name of the field containing the domains.
         output_name (str): The name of the field to store the design matrix in.
         """
-        adata.obsm[self.output_name] = design_matrix(
-            get_adjacency_from_adata(adata),
-            pd.get_dummies(get_from_address(adata, self.xl_name)).to_numpy(),
-            pd.get_dummies(get_from_address(adata, self.xc_name)).to_numpy(),
+        dm = design_matrix(
+            get_from_loc(adata, self.adj_matrix_loc),
+            pd.get_dummies(get_from_loc(adata, self.xl_loc)).to_numpy(),
+            pd.get_dummies(get_from_loc(adata, self.xc_loc)).to_numpy(),
         )
+        set_to_loc(adata, f"obsm/{self.output_name}", dm, self.overwrite)
         return adata
-

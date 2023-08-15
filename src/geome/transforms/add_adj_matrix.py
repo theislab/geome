@@ -1,23 +1,57 @@
-
+import squidpy as sq
 from anndata import AnnData
 
-from geome.utils import get_adjacency_from_adata
+from geome.transforms.utils import check_adj_matrix_loc
+from geome.utils import set_to_loc
 
 
 class AddAdjMatrix:
-    def __init__(self, xl_name: str, xc_name: str, output_name: str):
-        self.xl_name = xl_name
-        self.xc_name = xc_name
-        self.output_name = output_name
+    """Add the adjacency matrix to the AnnData object.
 
-    def __call__(self, adata: AnnData) -> AnnData:
-        """Will add the spatial connectivities matrix to adata.obsp["adjacency_matrix_connectivities"].
+    Args:
+    ----
+    location (str): The location to add the adjacency matrix to.
+                    Format should be 'attribute/key', e.g., 'obsp/adjacency_matrix'.
+                    'X' can be used for the main matrix.
+    overwrite (bool): Whether to overwrite the existing adjacency matrix.
+
+    Attributes:
+    ----------
+        location (str): The location where the adjacency matrix will be added.
+
+    Methods:
+    -------
+        __call__(adata: AnnData) -> AnnData:
+            Adds the spatial connectivities matrix to the given location in the AnnData object.
+    """
+
+    def __init__(self, location: str, overwrite: bool = False):
+        """Initialize the AddAdjMatrix class.
 
         Args:
         ----
-        adata: The AnnData object.
-
+        location (str): The location to add the adjacency matrix to.
         """
-        if "adjacency_matrix_connectivities" not in adata.obsp.keys():
-            adata.obsp["adjacency_matrix_connectivities"] = get_adjacency_from_adata(adata)
+        check_adj_matrix_loc(location)
+        self.location = location
+        self.overwrite = overwrite
+
+    def __call__(self, adata: AnnData) -> AnnData:
+        """Add the spatial connectivities matrix to the given location.
+
+        Args:
+        ----
+        adata (AnnData): The AnnData object.
+
+        Returns:
+        -------
+            AnnData: The updated AnnData object with the added adjacency matrix.
+        """
+        adj_matrix = sq.gr.spatial_neighbors(
+            adata,
+            coord_type="generic",
+            key_added="spatial",
+            copy=True,
+        )[0]
+        set_to_loc(adata, self.location, adj_matrix, self.overwrite)
         return adata

@@ -43,7 +43,7 @@ dev = [
 doc = [
     "furo",
     "sphinx>=4",
-    "sphinx-book-theme>=0.3.3",
+    "sphinx-book-theme>=1.0.0",
     "myst-nb",
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",
