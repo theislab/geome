@@ -1,8 +1,10 @@
-from typing import Any, Callable, Union, Optional
+from typing import Callable, Optional
+
+from anndata import AnnData
+
 from geome.iterables import ToCategoryIterable
 
 from .default import AnnData2DataDefault
-from anndata import AnnData
 
 
 class AnnData2DataByCategory(AnnData2DataDefault):

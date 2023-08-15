@@ -1,10 +1,9 @@
-from typing import Any, Callable, Union, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 from anndata import AnnData
-from scipy import sparse
 
-from geome.transforms import Compose, ToArray, AddAdjMatrix, AddEdgeIndex, AddEdgeWeight
+from geome.transforms import AddAdjMatrix, AddEdgeIndex, AddEdgeWeight, Compose
 from geome.utils import get_from_loc
 
 from .anndata2data import AnnData2Data
