@@ -1,7 +1,4 @@
-from typing import (
-    Dict,
-    List,
-)
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
@@ -10,9 +7,11 @@ from scipy import sparse
 
 from geome.utils import get_from_loc
 
+from .transform import Transform
 
-class ToArray:
-    def __init__(self, fields: Dict[str, List[str]]):
+
+class ToArray(Transform):
+    def __init__(self, fields: dict[str, list[str]]):
         self.fields = fields
 
     def __call__(self, adata: AnnData) -> AnnData:

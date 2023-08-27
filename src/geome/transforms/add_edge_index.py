@@ -1,12 +1,13 @@
-import numpy as np
+import torch
 from anndata import AnnData
 
-import torch
 from geome.transforms.utils import check_adj_matrix_loc
 from geome.utils import get_from_loc, set_to_loc
-from torch_geometric.utils import to_edge_index
 
-class AddEdgeIndex:
+from .transform import Transform
+
+
+class AddEdgeIndex(Transform):
     """Add the edge_index to the AnnData object.
 
     Args:
@@ -36,6 +37,7 @@ class AddEdgeIndex:
         # Extract adjacency matrix
         adj_matrix = get_from_loc(adata, self.adj_matrix_loc)
         # Convert adjacency matrix to edge_index
+        # TODO(syelman): There is probably a better way to do this
         nodes1, nodes2 = adj_matrix.nonzero()
         edge_index = torch.vstack(
             [

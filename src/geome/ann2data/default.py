@@ -1,4 +1,6 @@
-from typing import Callable, List, Optional
+from __future__ import annotations
+
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -8,16 +10,18 @@ from scipy import sparse
 
 from geome.utils import get_from_loc
 
-from .anndata2data import AnnData2Data
+from .ann2data import Ann2Data
 
 
-class AnnData2DataDefault(AnnData2Data):
+class Ann2DataDefault(Ann2Data):
+    """Convert anndata object into a dictionary of torch.tensors then create pyg.Data from them."""
+
     def __init__(
         self,
         fields: dict[str, list[str]],
-        adata2iter: Optional[Callable[[AnnData], AnnData]] = None,
-        preprocess: Optional[list[Callable[[AnnData], AnnData]]] = None,
-        transform: Optional[list[Callable[[AnnData], AnnData]]] = None,
+        adata2iter: Callable[[AnnData], AnnData] | None = None,
+        preprocess: list[Callable[[AnnData], AnnData]] | None = None,
+        transform: list[Callable[[AnnData], AnnData]] | None = None,
     ) -> None:
         """Convert anndata object into a dictionary of arrays.
 
@@ -48,7 +52,7 @@ class AnnData2DataDefault(AnnData2Data):
         self._transform = transform
         self._adata2iter = adata2iter
 
-    def merge_field(self, adata: AnnData, field: str, locations: List[str]) -> torch.Tensor:
+    def merge_field(self, adata: AnnData, field: str, locations: list[str]) -> torch.Tensor:
         """Abstract method for merging multiple fields in an AnnData object.
 
         Args:

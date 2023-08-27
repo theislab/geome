@@ -1,9 +1,13 @@
+import scipy.sparse as sparse
+import torch
 from anndata import AnnData
 
 from geome.utils import get_from_loc, set_to_loc
-import torch
-import scipy.sparse as sparse 
-class AddEdgeWeight:
+
+from .transform import Transform
+
+
+class AddEdgeWeight(Transform):
     """Add the edge weights to the AnnData object.
 
     Args:

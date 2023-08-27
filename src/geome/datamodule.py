@@ -1,4 +1,6 @@
-from typing import List, Literal, Optional, Sequence
+from __future__ import annotations
+
+from typing import Literal, Sequence
 
 import pytorch_lightning as pl
 from torch_geometric.data import Batch, Data
@@ -12,9 +14,11 @@ VALID_SPLIT = {"node", "graph"}
 
 
 class GraphAnnDataModule(pl.LightningDataModule):
+    """Lightning DataModule for graph data."""
+
     def __init__(
         self,
-        datas: Optional[Sequence[Data]] = None,
+        datas: Sequence[Data] | None = None,
         batch_size: int = 1,
         num_workers: int = 1,
         learning_type: Literal["node", "graph"] = "node",
@@ -47,7 +51,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.learning_type = learning_type
         self.first_time = True
 
-    def _nodewise_setup(self, stage: Optional[str]) -> None:
+    def _nodewise_setup(self, stage: str | None) -> None:
         """Sets up the data loaders for node-wise learning.
 
         Args:
@@ -79,7 +83,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 input_nodes=self.data.test_mask,
             )
 
-    def _graphwise_setup(self, stage: Optional[str]) -> None:
+    def _graphwise_setup(self, stage: str | None) -> None:
         """Sets up the data loaders for graph-wise learning.
 
         Args:
@@ -102,7 +106,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self._test_dataloader = self._graph_loader(data=self.data[num_val : num_val + num_test])
 
-    def setup(self, stage: Optional[str] = None):
+    def setup(self, stage: str | None = None):
         """Setup function to be called at the beginning of training, validation or testing.
 
         Args:
@@ -142,7 +146,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             raise RuntimeError("setup method should be called before getting dataloaders")
         return dataloader
 
-    def _graph_loader(self, data: List, shuffle: bool = False, **kwargs) -> DataListLoader:
+    def _graph_loader(self, data: list, shuffle: bool = False, **kwargs) -> DataListLoader:
         """Loads the data in the form of graphs.
 
         Args:
@@ -159,7 +163,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             dataset=data, shuffle=shuffle, batch_size=self.batch_size, num_workers=self.num_workers, **kwargs
         )
 
-    def _spatial_node_loader(self, input_nodes: List, shuffle: bool = False, **kwargs) -> NeighborLoader:
+    def _spatial_node_loader(self, input_nodes: list, shuffle: bool = False, **kwargs) -> NeighborLoader:
         """Loads the data in the form of nodes.
 
         Args:

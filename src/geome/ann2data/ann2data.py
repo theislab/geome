@@ -1,21 +1,22 @@
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+from __future__ import annotations
 
-import numpy as np
+from abc import ABC, abstractmethod
+from typing import Any, Callable, Iterable
+
 import torch
 from anndata import AnnData
 from torch_geometric.data import Data
 
 
-class AnnData2Data(ABC):
+class Ann2Data(ABC):
     """Abstract class that transforms an iterable of AnnData to Pytorch Geometric Data object."""
 
     def __init__(
         self,
-        fields: Dict[str, List[str]],
-        adata2iterable: Optional[Callable[[AnnData], Iterable[AnnData]]] = None,
-        preprocess: Optional[Callable[[AnnData], AnnData]] = None,
-        transform: Optional[Callable[[AnnData], AnnData]] = None,
+        fields: dict[str, list[str]],
+        adata2iterable: Callable[[AnnData], Iterable[AnnData]] | None = None,
+        preprocess: Callable[[AnnData], AnnData] | None = None,
+        transform: Callable[[AnnData], AnnData] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -37,7 +38,7 @@ class AnnData2Data(ABC):
         self._transform = transform
 
     @abstractmethod
-    def merge_field(self, adata:AnnData, field: str, locations: List[str]) -> torch.Tensor:
+    def merge_field(self, adata:AnnData, field: str, locations: list[str]) -> torch.Tensor:
         """Abstract method for merging multiple fields in an AnnData object.
 
         Args:
@@ -68,7 +69,7 @@ class AnnData2Data(ABC):
             obj[field] = self.merge_field(adata, field, locations)
         return Data(**obj)
 
-    def __call__(self, adata: Union[AnnData, Iterable[AnnData]]) -> List[Data]:
+    def __call__(self, adata: AnnData | Iterable[AnnData]) -> list[Data]:
         """Convert an AnnData object to a list of PyTorch compatible data objects.
 
         Args:

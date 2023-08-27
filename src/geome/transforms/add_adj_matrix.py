@@ -4,8 +4,10 @@ from anndata import AnnData
 from geome.transforms.utils import check_adj_matrix_loc
 from geome.utils import set_to_loc
 
+from .transform import Transform
 
-class AddAdjMatrix:
+
+class AddAdjMatrix(Transform):
     """Add the adjacency matrix to the AnnData object.
 
     Args:

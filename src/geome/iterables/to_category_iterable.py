@@ -2,11 +2,12 @@ from typing import Literal
 
 from anndata import AnnData
 
-from .adata2iterable import AnnData2Iterable
 from geome.utils import get_from_loc
 
+from .to_iterable import ToIterable
 
-class ToCategoryIterable(AnnData2Iterable):
+
+class ToCategoryIterable(ToIterable):
     """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
 
     Preserves the categories in the resulting AnnData obs and var Series.
@@ -22,25 +23,37 @@ class ToCategoryIterable(AnnData2Iterable):
         self.preserve_categories = preserve_categories
 
     def __call__(self, adata: AnnData):
+        """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
+
+        Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True.
+
+        Args:
+        ----
+        adata (AnnData): AnnData object to iterate over.
+
+        Yields:
+        ------
+        adata[adata.axis[category] == cat] for each cat in adata.axis[category].categories
+        """
         cats_df = get_from_loc(adata, f"{self.axis}/{self.category}")
         cats = cats_df.dtypes.categories
-        obs_cats = {}
-        var_cats = {}
+        preserved_categories = {"obs": {}, "var": {}}
         if self.preserve_categories:
-            # TODO: maybe avoid duplicate code here later
-            if adata.obs is not None:
-                for key in adata.obs.keys():
-                    if adata.obs[key].dtype.name == "category":
-                        obs_cats[key] = adata.obs[key].cat.categories
-            if adata.var is not None:
-                for key in adata.var.keys():
-                    if adata.var[key].dtype.name == "category":
-                        var_cats[key] = adata.var[key].cat.categories
+            for axis in ("obs", "var"):
+                adata_axis = getattr(adata, axis)
+                if adata_axis is not None:
+                    for key in adata_axis.keys():
+                        if adata_axis[key].dtype.name == "category":
+                            preserved_categories[axis][key] = adata_axis[key].cat.categories
 
         for cat in cats:
+            # TODO(syelman): is this wise? Maybe create copy only if preserve_categories is True?
             subadata = adata[cats_df == cat].copy()
-            for k, v in obs_cats.items():
-                subadata.obs[k] = subadata.obs[k].cat.set_categories(v)
-            for k, v in var_cats.items():
-                subadata.var[k] = subadata.var[k].cat.set_categories(v)
+            # if categories are preserved
+            if self.preserve_categories:
+                for axis in ("obs", "var"):
+                    for key, val in preserved_categories[axis].items():
+                        if key in getattr(subadata, axis):
+                            subadata_axis = getattr(subadata, axis)
+                            subadata_axis[key] = subadata_axis[key].cat.set_categories(val)
             yield subadata

@@ -1,19 +1,23 @@
-from typing import Callable, Optional
+from __future__ import annotations
+
+from typing import Callable
 
 from anndata import AnnData
 
 from geome.iterables import ToCategoryIterable
 
-from .default import AnnData2DataDefault
+from .default import Ann2DataDefault
 
 
-class AnnData2DataByCategory(AnnData2DataDefault):
+class Ann2DataByCategory(Ann2DataDefault):
+    """Convert anndata object into a dictionary of torch.tensors then create pyg.Data from them."""
+
     def __init__(
         self,
         fields: dict[str, list[str]],
         category: str,
-        preprocess: Optional[list[Callable[[AnnData], AnnData]]] = None,
-        transform: Optional[list[Callable[[AnnData], AnnData]]] = None,
+        preprocess: list[Callable[[AnnData], AnnData]] | None = None,
+        transform: list[Callable[[AnnData], AnnData]] | None = None,
     ):
         """Initializes the class.
 

@@ -6,6 +6,8 @@ from anndata import AnnData
 from geome.transforms.utils import check_adj_matrix_loc
 from geome.utils import check_loc, get_from_loc, set_to_loc
 
+from .transform import Transform
+
 
 def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
     """Returns the design matrix given the adjacency matrix, cell types, and domains.
@@ -28,7 +30,7 @@ def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
     return Xd
 
 
-class AddDesignMatrix:
+class AddDesignMatrix(Transform):
     """Adds the design matrix defined in NCEM paper to adata.obsm."""
 
     def __init__(self, xl_loc: str, xc_loc: str, adj_matrix_loc: str, output_name: str, overwrite: bool = False):

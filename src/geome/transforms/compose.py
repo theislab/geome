@@ -1,18 +1,20 @@
-from typing import (
-    Callable,
-    List,
-)
+from __future__ import annotations
+
+from typing import Callable
 
 from anndata import AnnData
 
+from .transform import Transform
 
-class Compose:
-    """Iterates over `adata` by category on the given axis (either obs(0) or var(1))."""
 
-    def __init__(self, transforms: List[Callable[[AnnData], AnnData]]):
+class Compose(Transform):
+    """Composes several transforms together as a single transform."""
+
+    def __init__(self, transforms: list[Callable[[AnnData], AnnData]]):
         self.transforms = transforms
 
     def __call__(self, adata: AnnData) -> AnnData:
+        """Applies each transform in order."""
         for t in self.transforms:
             adata = t(adata)
         return adata
