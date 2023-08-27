@@ -9,7 +9,7 @@ from torch_geometric.data import Data
 
 
 class Ann2Data(ABC):
-    """Abstract class that transforms an iterable of AnnData to Pytorch Geometric Data object."""
+    """Abstract class that transforms an iterable of AnnData to Pytorch Geometric Data objects."""
 
     def __init__(
         self,
@@ -69,18 +69,18 @@ class Ann2Data(ABC):
             obj[field] = self.merge_field(adata, field, locations)
         return Data(**obj)
 
-    def __call__(self, adata: AnnData | Iterable[AnnData]) -> list[Data]:
-        """Convert an AnnData object to a list of PyTorch compatible data objects.
+    def __call__(self, adata: AnnData | Iterable[AnnData]) -> Iterable[Data]:
+        """Convert an AnnData object to a PyTorch compatible data object.
 
         Args:
         ----
         adata: The AnnData object to be converted.
 
-        Returns:
-        -------
-        A list of PyTorch compatible data objects.
+        Yields:
+        ------
+        PyTorch Geometric compatible data object.
+
         """
-        dataset = []
         # do the given preprocessing steps.
         if self._preprocess is not None:
             adata = self._preprocess(adata)
@@ -93,7 +93,17 @@ class Ann2Data(ABC):
         for subadata in adata_iter:
             if self._transform is not None:
                 subadata = self._transform(subadata)
-            data = self.create_data_obj(subadata)
-            dataset.append(data)
+            yield self.create_data_obj(subadata)
 
-        return dataset
+    def to_list(self, adata: AnnData | Iterable[AnnData]) -> list[Data]:
+        """Convert an AnnData object to a list of PyTorch compatible data objects.
+
+        Args:
+        ----
+        adata: The AnnData object to be converted.
+
+        Returns:
+        -------
+        A list of PyTorch Geometric compatible data objects.
+        """
+        return list(self(adata))

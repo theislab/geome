@@ -51,9 +51,15 @@ class Ann2DataDefault(Ann2Data):
         self._preprocess = preprocess
         self._transform = transform
         self._adata2iter = adata2iter
+        self._fields = fields.copy()
+        self._last_fields_info = {}
+        for field, locations in self.fields.items():
+            self._last_fields_info[field] = {"locations": locations}
+            # fill in at merge_fields
+            self._last_fields_info[field]["sizes"] = []
 
     def merge_field(self, adata: AnnData, field: str, locations: list[str]) -> torch.Tensor:
-        """Abstract method for merging multiple fields in an AnnData object.
+        """Method for merging multiple fields in an AnnData object.
 
         Args:
         ----
@@ -63,26 +69,37 @@ class Ann2DataDefault(Ann2Data):
 
         Returns:
         -------
-            Merged array corresponding to field.
+        Merged array corresponding to field.
         """
-        if len(locations) == 1:
-            obj = get_from_loc(adata, locations[0])
-            return self._convert_to_array(obj)
-        else:
-            arrs = []
-            for loc in locations:
-                arrs.append(self._convert_to_array(get_from_loc(adata, loc)))
-            return torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
+        arrs = []
+        for loc in locations:
+            arrs.append(self._convert_to_tensor(get_from_loc(adata, loc)))
+        self._last_fields_info[field]["sizes"] = [
+            arr.shape if len(arrs) == 1 else (*(len(arr.shape) - 1) * ["-"], arr.shape[-1]) for arr in arrs
+        ]
+        return torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
 
-    def _convert_to_array(self, obj):
-        # if obj is categorical
+    def _convert_to_tensor(self, obj):
         if isinstance(obj, torch.Tensor):
             return obj
+        # if obj is categorical
         if obj.dtype.name == "category":
             return pd.get_dummies(obj).to_numpy()
-        elif not np.issubdtype(obj.dtype, np.number):
+        if not np.issubdtype(obj.dtype, np.number):
             return obj.astype(np.float)
-        elif sparse.issparse(obj):
+        if sparse.issparse(obj):
             return np.array(obj.todense())
         else:
             return obj
+
+    def __repr__(self) -> str:
+        s = ""
+        pad = " " * 4
+        for field, info in self._last_fields_info.items():
+            s += f"{field}:" + "\n"
+            sizes = info["sizes"] if info["sizes"] else [('?')] * len(info["locations"])
+            s += pad + "-----------------------------------\n"
+            for loc, size in zip(info["locations"], sizes):
+                s += pad + f"{loc} {tuple(size)}\n"
+            s += pad + "-----------------------------------\n"
+        return s
