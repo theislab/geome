@@ -4,17 +4,18 @@ import pandas as pd
 from typing import Any, List
 
 
-def get_adjacency_from_adata(adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
+def get_adjacency_from_adata(adata: Any, connectivities_key:str=None, *args: Any, **kwargs: Any) -> np.ndarray:
     """Returns the spatial connectivities matrix from an AnnData object.
 
     Args:
         adata: The AnnData object.
+        connectivities_key: optional adata.obsp key calculated with squidpy.gr.spatial_neighbors()
 
     Returns:
         np.ndarray: The spatial connectivities matrix.
     """
-    if "adjacency_matrix_connectivities" in adata.obsp.keys():
-        spatial_connectivities = adata.obsp["adjacency_matrix_connectivities"]
+    if connectivities_key in adata.obsp.keys():
+        spatial_connectivities = adata.obsp[connectivities_key]
     else:
         spatial_connectivities, _ = sq.gr.spatial_neighbors(
             adata,
