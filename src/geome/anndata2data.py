@@ -14,6 +14,7 @@ class AnnData2Data(ABC):
         fields: Dict[str, List[str]],
         adata_iter: Optional[Callable[[Any], Any]] = None,
         preprocess: Optional[List[Callable[[Any, Dict[str, List[str]]], None]]] = None,
+        connectivities_key: Optional[str] = None,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -31,12 +32,15 @@ class AnnData2Data(ABC):
                 If set to None, the object will assume adata_iter returns only the input AnnData object.
             preprocess: A list of callables that take an AnnData object and the fields dictionary as inputs and
                 perform data preprocessing steps on the AnnData object before conversion to PyTorch Data objects.
+            connectivities_key: Name of key added by squidpy.gr.spatial_neighbors() in adata.obsp. If None,
+                key gets calculated later named 'spatial'.
             *args: Any additional arguments to be passed to subclass constructors.
             **kwargs: Any additional keyword arguments to be passed to subclass constructors.
         """
         self._adata_iter = adata_iter
         self._preprocess = preprocess
         self.fields = fields
+        self.connectivities_key = connectivities_key
 
     @abstractmethod
     def get_adj_matrix(self, adata: Any, *args: Any, **kwargs: Any) -> Any:
@@ -137,6 +141,7 @@ class AnnData2DataDefault(AnnData2Data):
         adata_iter: Union[None, Callable[[Any], Any]] = None,
         preprocess: Union[None, List[Callable[[Any], Any]]] = None,
         yields_edge_index: bool = True,
+        connectivities_key: str = None,
     ) -> None:
         """
         Convert anndata object into a dictionary of arrays.
@@ -158,6 +163,8 @@ class AnnData2DataDefault(AnnData2Data):
                 This class by default adds a preprocessing step.
                 See the static method default_preprocess.
             yields_edge_index: Whether to return the edge index of the adjacency matrix.
+            connectivities_key: Name of key added by squidpy.gr.spatial_neighbors() in adata.obsp. If None,
+                key gets calculated later named 'spatial'.
         """
         super().__init__(fields, adata_iter, preprocess)
         # Default is the identity function.
@@ -167,12 +174,15 @@ class AnnData2DataDefault(AnnData2Data):
         # So that get_as_array works properly.
         self._preprocess = (preprocess if preprocess is not None else []) + self._preprocess
         self.yields_edge_index = yields_edge_index
+        self.connectivities_key = connectivities_key
+
 
     def get_adj_matrix(self, adata: Any, *args: Any, **kwargs: Any) -> np.ndarray:
         """Helper function to create an adjacency matrix depending on the anndata object.
 
         Args:
             adata: An AnnData object.
+            connectivities_key: optional adata.obsp key calculated with squidpy.gr.spatial_neighbors()
             args: Additional arguments passed to the function get_adjacency_from_adata.
             kwargs: Additional keyword arguments passed to the function get_adjacency_from_adata.
 
@@ -180,7 +190,7 @@ class AnnData2DataDefault(AnnData2Data):
             The adjacency matrix.
         """
         # Get adjacency matrices
-        return get_adjacency_from_adata(adata, *args, **kwargs)
+        return get_adjacency_from_adata(adata, self.connectivities_key, *args, **kwargs)
 
     def array_from_address(self, adata: Any, address: str) -> Union[np.ndarray, sparse.spmatrix]:
         """Return the array corresponding to the given address.
@@ -254,6 +264,8 @@ class AnnData2DataByCategory(AnnData2DataDefault):
         Function to preprocess data before transformation.
     yields_edge_index : bool, default=True
         Whether to yield edge index.
+    onnectivities_key: Name of key added by squidpy.gr.spatial_neighbors() in adata.obsp. If None,
+        key gets calculated later named 'spatial'.
 
     Attributes
     ----------
@@ -261,7 +273,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
         Function to iterate over `adata` by category.
     """
 
-    def __init__(self, fields: dict, category: str, preprocess=None, yields_edge_index: bool = True):
+    def __init__(self, fields: dict, category: str, preprocess=None, yields_edge_index: bool = True, connectivities_key: str = None):
         """
         Initializes the class.
 
@@ -281,6 +293,7 @@ class AnnData2DataByCategory(AnnData2DataDefault):
             adata_iter=lambda x: AnnData2DataByCategory.adata_iter_category(x, category),
             preprocess=preprocess,
             yields_edge_index=yields_edge_index,
+            connectivities_key=connectivities_key
         )
 
     @staticmethod
