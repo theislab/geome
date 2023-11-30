@@ -1,7 +1,10 @@
+from __future__ import annotations
+
+from typing import Literal, Sequence
+
 import pytorch_lightning as pl
-from typing import Literal, Optional, Sequence, List
-from torch_geometric.loader import NeighborLoader, DataListLoader
-from torch_geometric.data import Data, Batch
+from torch_geometric.data import Batch, Data
+from torch_geometric.loader import DataListLoader, NeighborLoader
 from torch_geometric.transforms import RandomNodeSplit
 
 VALID_STAGE = {"fit", "test", None}
@@ -11,31 +14,35 @@ VALID_SPLIT = {"node", "graph"}
 
 
 class GraphAnnDataModule(pl.LightningDataModule):
+    """Lightning DataModule for graph data."""
+
     def __init__(
         self,
-        datas: Optional[Sequence[Data]] = None,
+        datas: Sequence[Data] | None = None,
         batch_size: int = 1,
         num_workers: int = 1,
         learning_type: Literal["node", "graph"] = "node",
     ):
-        """
-        Manages loading and sampling schemes before loading to GPU.
+        """Manages loading and sampling schemes before loading to GPU.
 
         Args:
-            datas (Sequence[Data], optional): The data to be loaded. Defaults to None.
-            batch_size (int, optional): The batch size. Defaults to 1.
-            num_workers (int, optional): The number of workers. Defaults to 1.
-            learning_type (Literal["node", "graph"], optional): The type of learning to be performed.
-                If "graph" is selected, `batch_size` means the number of graphs and `datas` is expected to be a list of Data.
-                If "node" is selected, `batch_size` means the number of nodes and `datas` is expected to be a list of Data objects
-                with an edge_index attribute. Defaults to "node".
+        ----
+        datas (Sequence[Data], optional): The data to be loaded. Defaults to None.
+        batch_size (int, optional): The batch size. Defaults to 1.
+        num_workers (int, optional): The number of workers. Defaults to 1.
+        learning_type (Literal["node", "graph"], optional): The type of learning to be performed.
+            If "graph" is selected, `batch_size` means the number of graphs and `datas` is expected to be a list of Data.
+            If "node" is selected, `batch_size` means the number of nodes and `datas` is expected to be a list of Data objects
+            with an edge_index attribute. Defaults to "node".
 
         Raises:
+        ------
             ValueError: If `learning_type` is not one of {"node", "graph"}.
         """
         # TODO: Fill the docstring
 
         super().__init__()
+        self.setup_called = False
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.data = datas
@@ -44,14 +51,15 @@ class GraphAnnDataModule(pl.LightningDataModule):
         self.learning_type = learning_type
         self.first_time = True
 
-    def _nodewise_setup(self, stage: Optional[str]) -> None:
-        """
-        Sets up the data loaders for node-wise learning.
+    def _nodewise_setup(self, stage: str | None) -> None:
+        """Sets up the data loaders for node-wise learning.
 
         Args:
-            stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
+        ----
+        stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
 
         Returns:
+        -------
             None
         """
         if self.first_time:
@@ -75,14 +83,15 @@ class GraphAnnDataModule(pl.LightningDataModule):
                 input_nodes=self.data.test_mask,
             )
 
-    def _graphwise_setup(self, stage: Optional[str]) -> None:
-        """
-        Sets up the data loaders for graph-wise learning.
+    def _graphwise_setup(self, stage: str | None) -> None:
+        """Sets up the data loaders for graph-wise learning.
 
         Args:
-            stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
+        ----
+        stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
 
         Returns:
+        -------
             None
         """
         num_val = int(len(self.data) * 0.05 + 1)
@@ -97,12 +106,12 @@ class GraphAnnDataModule(pl.LightningDataModule):
         if stage == "test" or stage is None:
             self._test_dataloader = self._graph_loader(data=self.data[num_val : num_val + num_test])
 
-    def setup(self, stage: Optional[str] = None):
-        """
-        Setup function to be called at the beginning of training, validation or testing
+    def setup(self, stage: str | None = None):
+        """Setup function to be called at the beginning of training, validation or testing.
 
         Args:
-            stage (str, optional): the stage of the training, either 'train', 'val' or 'test'. Defaults to None.
+        ----
+        stage (str, optional): the stage of the training, either 'train', 'val' or 'test'. Defaults to None.
         """
         # TODO: Implement each case
         # TODO: Splitting
@@ -118,49 +127,53 @@ class GraphAnnDataModule(pl.LightningDataModule):
 
         else:
             self._nodewise_setup(stage)
+        self.setup_called = True
 
     def train_dataloader(self):
-        """
-        Returns the training dataloader
-        """
-        return self._train_dataloader
+        """Returns the training dataloader."""
+        return self._get_dataloader(self._train_dataloader)
 
     def val_dataloader(self):
-        """
-        Returns the validation dataloader
-        """
-        return self._val_dataloader
+        """Returns the validation dataloader."""
+        return self._get_dataloader(self._val_dataloader)
 
     def test_dataloader(self):
-        """
-        Returns the test dataloader
-        """
-        return self._test_dataloader
+        """Returns the test dataloader."""
+        return self._get_dataloader(self._test_dataloader)
 
-    def _graph_loader(self, data: List, shuffle: bool = False, **kwargs) -> DataListLoader:
-        """
-        Loads the data in the form of graphs
+    def _get_dataloader(self, dataloader):
+        if not self.setup_called:
+            raise RuntimeError("setup method should be called before getting dataloaders")
+        return dataloader
+
+    def _graph_loader(self, data: list, shuffle: bool = False, **kwargs) -> DataListLoader:
+        """Loads the data in the form of graphs.
 
         Args:
-            data (List): list of data to be loaded
-            shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        ----
+        data (List): list of data to be loaded
+        shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        kwargs: arguments passed to the pyg.DataListLoader
 
         Returns:
-            DataListLoader: the graph dataloader
+        -------
+        DataListLoader: the graph dataloader
         """
         return DataListLoader(
             dataset=data, shuffle=shuffle, batch_size=self.batch_size, num_workers=self.num_workers, **kwargs
         )
 
-    def _spatial_node_loader(self, input_nodes: List, shuffle: bool = False, **kwargs) -> NeighborLoader:
-        """
-        Loads the data in the form of nodes
+    def _spatial_node_loader(self, input_nodes: list, shuffle: bool = False, **kwargs) -> NeighborLoader:
+        """Loads the data in the form of nodes.
 
         Args:
-            input_nodes (List): the input nodes
-            shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        ----
+        input_nodes (List): the input nodes
+        shuffle (bool, optional): whether to shuffle the data. Defaults to False.
+        kwargs: arguments passed to the pyg.NeighborLoader
 
         Returns:
+        -------
             NeighborLoader: the node dataloader
         """
         return NeighborLoader(
