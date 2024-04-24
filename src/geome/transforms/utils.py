@@ -8,7 +8,7 @@ def check_adj_matrix_loc(location: str):
     ----
     location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
 
-    Raises:
+    Raises
     ------
         ValueError: If the location format is incorrect.
     """
@@ -16,6 +16,4 @@ def check_adj_matrix_loc(location: str):
     if location != "X":
         parts = location.split("/")
         if parts[0] not in ("obsp", "varp", "layers"):
-            raise ValueError(
-                "Location attribute must be one of ('obsp', 'varp', 'X', 'layers')"
-            )
+            raise ValueError("Location attribute must be one of ('obsp', 'varp', 'X', 'layers')")

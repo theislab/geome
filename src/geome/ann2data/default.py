@@ -67,7 +67,7 @@ class Ann2DataDefault(Ann2Data):
         field: Name of the new field.
         locations: List of locations of the fields to be merged.
 
-        Returns:
+        Returns
         -------
         Merged array corresponding to field.
         """
@@ -97,7 +97,7 @@ class Ann2DataDefault(Ann2Data):
         pad = " " * 4
         for field, info in self._last_fields_info.items():
             s += f"{field}:" + "\n"
-            sizes = info["sizes"] if info["sizes"] else [('?')] * len(info["locations"])
+            sizes = info["sizes"] if info["sizes"] else [("?")] * len(info["locations"])
             s += pad + "-----------------------------------\n"
             for loc, size in zip(info["locations"], sizes):
                 s += pad + f"{loc} {tuple(size)}\n"

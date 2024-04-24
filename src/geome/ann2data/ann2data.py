@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterable
+from collections.abc import Iterable
+from typing import Any, Callable
 
 import torch
 from anndata import AnnData
@@ -38,7 +39,7 @@ class Ann2Data(ABC):
         self._transform = transform
 
     @abstractmethod
-    def merge_field(self, adata:AnnData, field: str, locations: list[str]) -> torch.Tensor:
+    def merge_field(self, adata: AnnData, field: str, locations: list[str]) -> torch.Tensor:
         """Abstract method for merging multiple fields in an AnnData object.
 
         Args:
@@ -47,7 +48,7 @@ class Ann2Data(ABC):
         field: Name of the new field.
         locations: List of locations of the fields to be merged.
 
-        Returns:
+        Returns
         -------
             Merged array corresponding to field.
         """
@@ -60,7 +61,7 @@ class Ann2Data(ABC):
         ----
         adata: AnnData object.
 
-        Returns:
+        Returns
         -------
         PyTorch Data object.
         """
@@ -76,7 +77,7 @@ class Ann2Data(ABC):
         ----
         adata: The AnnData object to be converted.
 
-        Yields:
+        Yields
         ------
         PyTorch Geometric compatible data object.
 
@@ -102,7 +103,7 @@ class Ann2Data(ABC):
         ----
         adata: The AnnData object to be converted.
 
-        Returns:
+        Returns
         -------
         A list of PyTorch Geometric compatible data objects.
         """

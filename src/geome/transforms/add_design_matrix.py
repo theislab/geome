@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 from anndata import AnnData
@@ -18,7 +17,7 @@ def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
     Xl (np.ndarray): The cell types.
     Xc (np.ndarray): The domains.
 
-    Returns:
+    Returns
     -------
     np.ndarray: The design matrix.
     """

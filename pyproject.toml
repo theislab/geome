@@ -7,7 +7,7 @@ name = "geome"
 version = "0.0.2"
 description = "Geometric Learning for Genome Data"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 authors = [
     {name = "Marcella Toth"},
@@ -30,7 +30,7 @@ dependencies = [
     "pandas",
     "pytorch_lightning",
     # for debug logging (referenced from the issue template)
-    "session-info"
+    "session-info",
 ]
 
 [project.optional-dependencies]
@@ -38,9 +38,10 @@ dev = [
     # CLI for bumping the version number
     "bump2version",
     "pre-commit",
-    "twine>=4.0.2"
+    "twine>=4.0.2",
 ]
 doc = [
+    "docutils>=0.8,!=0.18.*,!=0.19.*",
     "furo",
     "sphinx>=4",
     "sphinx-book-theme>=1.0.0",
@@ -51,10 +52,11 @@ doc = [
     "ipykernel",
     "ipython",
     "sphinx-copybutton",
+    "pandas",
 ]
 test = [
     "pytest",
-    "pytest-cov",
+    "coverage",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -77,6 +79,7 @@ addopts = [
 line-length = 120
 src = ["src"]
 extend-include = ["*.ipynb"]
+exclude = ["docs/notebooks/utils/*"]
 
 [tool.ruff.format]
 docstring-code-format = true

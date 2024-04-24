@@ -75,9 +75,7 @@ class GraphTools:
         -------
         degree transformed sparse adjacency matrix
         """
-        warnings.filterwarnings(
-            "ignore", message="divide by zero encountered in true_divide"
-        )
+        warnings.filterwarnings("ignore", message="divide by zero encountered in true_divide")
         degrees = 1 / a.sum(axis=0)
         degrees[a.sum(axis=0) == 0] = 0
         degrees = np.squeeze(np.asarray(degrees))
@@ -136,10 +134,7 @@ class GraphTools:
         for i, adata in self.img_celldata.items():
             pm = np.array(adata.obsm["spatial"])
             dist_matrix = self._compute_distance_matrix(pm)
-            degs[i] = {
-                dist: np.sum(dist_matrix < dist * dist, axis=0)
-                for dist in max_distances
-            }
+            degs[i] = {dist: np.sum(dist_matrix < dist * dist, axis=0) for dist in max_distances}
         for dist in max_distances:
             degrees[dist] = [deg[dist] for deg in degs.values()]
         return degrees
@@ -174,9 +169,7 @@ class Dataset(GraphTools):
         self.register_celldata(n_top_genes=n_top_genes)
         self.register_img_celldata()
         self.register_graph_features(label_selection=label_selection)
-        self.compute_adjacency_matrices(
-            radius=radius, coord_type=coord_type, n_rings=n_rings
-        )
+        self.compute_adjacency_matrices(radius=radius, coord_type=coord_type, n_rings=n_rings)
         self.radius = radius
 
         print(
@@ -199,9 +192,7 @@ class Dataset(GraphTools):
         -------
         patients
         """
-        return np.unique(
-            np.asarray(list(self.celldata.uns["img_to_patient_dict"].values()))
-        )
+        return np.unique(np.asarray(list(self.celldata.uns["img_to_patient_dict"].values())))
 
     def register_celldata(self, n_top_genes: Optional[int] = None):
         """Load AnnData object of complete dataset."""
@@ -260,10 +251,7 @@ class Dataset(GraphTools):
                 print("WARNING: found irregular node sizes in image %s" % str(i))
         # Get global mean of feature intensity across all features:
         global_mean_per_node = self.celldata.X.sum(axis=1).mean(axis=0)
-        return {
-            i: global_mean_per_node / np.sum(adata.X, axis=1)
-            for i, adata in self.img_celldata.items()
-        }
+        return {i: global_mean_per_node / np.sum(adata.X, axis=1) for i, adata in self.img_celldata.items()}
 
     @property
     def var_names(self):
@@ -330,24 +318,19 @@ class DatasetZhang(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(
-                self.cell_type_merge_dict
-            )
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -360,9 +343,7 @@ class DatasetZhang(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -471,24 +452,19 @@ class DatasetJarosch(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(
-                self.cell_type_merge_dict
-            )
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -501,9 +477,7 @@ class DatasetJarosch(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -652,9 +626,7 @@ class DatasetHartmann(Dataset):
         X = pd.DataFrame(np.array(celldata_df[feature_cols]), columns=var_names)
         celldata = AnnData(
             X=X,
-            obs=celldata_df[
-                ["point", "cell_id", "cell_size", "donor", "Cluster"]
-            ].astype("category"),
+            obs=celldata_df[["point", "cell_id", "cell_size", "donor", "Cluster"]].astype("category"),
             dtype=X.dtypes,
         )
 
@@ -675,24 +647,19 @@ class DatasetHartmann(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(
-                list(celldata.obs[metadata["cluster_col"]]), dtype="category"
-            ).map(self.cell_type_merge_dict)
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="category").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -705,9 +672,7 @@ class DatasetHartmann(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -736,9 +701,7 @@ class DatasetHartmann(Dataset):
             label_selection = set(label_cols.keys())
         else:
             label_selection = set(label_selection)
-        label_cols_toread = list(
-            label_selection.intersection(set(list(label_cols.keys())))
-        )
+        label_cols_toread = list(label_selection.intersection(set(list(label_cols.keys()))))
         usecols = label_cols_toread + [patient_col]
 
         tissue_meta_data = read_excel(
@@ -751,13 +714,9 @@ class DatasetHartmann(Dataset):
         # transform this to have as output of this section dictionary by image with a dictionary by labels as values
         # which can be easily queried by image in a data generator.
         # Subset labels and label types:
-        label_cols = {
-            label: nt for label, nt in label_cols.items() if label in label_selection
-        }
+        label_cols = {label: nt for label, nt in label_cols.items() if label in label_selection}
         label_tensors = {}
-        label_names = (
-            {}
-        )  # Names of individual variables in each label vector (eg. categories in onehot-encoding).
+        label_names = {}  # Names of individual variables in each label vector (eg. categories in onehot-encoding).
         # 1. Standardize continuous labels to z-scores:
         continuous_mean = {
             feature: tissue_meta_data[feature].mean(skipna=True)
@@ -771,9 +730,9 @@ class DatasetHartmann(Dataset):
         }
         for feature in list(label_cols.keys()):
             if label_cols[feature] == "continuous":
-                label_tensors[feature] = (
-                    tissue_meta_data[feature].values - continuous_mean[feature]
-                ) / continuous_std[feature]
+                label_tensors[feature] = (tissue_meta_data[feature].values - continuous_mean[feature]) / continuous_std[
+                    feature
+                ]
                 label_names[feature] = [feature]
         # 2. One-hot encode categorical columns
         # Force all entries in categorical columns to be string so that GLM-like formula processing can be performed.
@@ -790,9 +749,7 @@ class DatasetHartmann(Dataset):
                     drop_first=False,
                 )
                 # Change all entries of corresponding observation to np.nan instead.
-                idx_nan_col = np.array(
-                    [i for i, x in enumerate(oh.columns) if x.endswith(">nan")]
-                )
+                idx_nan_col = np.array([i for i, x in enumerate(oh.columns) if x.endswith(">nan")])
                 if len(idx_nan_col) > 0:
                     assert len(idx_nan_col) == 1, "fatal processing error"
                     nan_rows = np.where(oh.iloc[:, idx_nan_col[0]].values == 1.0)[0]
@@ -810,9 +767,7 @@ class DatasetHartmann(Dataset):
         tissue_meta_data_patients = tissue_meta_data[patient_col].values.tolist()
         label_tensors = {
             img: {
-                feature_name: np.array(
-                    features[tissue_meta_data_patients.index(patient), :], ndmin=1
-                )
+                feature_name: np.array(features[tissue_meta_data_patients.index(patient), :], ndmin=1)
                 for feature_name, features in label_tensors.items()
             }
             if patient in tissue_meta_data_patients
@@ -820,9 +775,7 @@ class DatasetHartmann(Dataset):
             for img, patient in self.celldata.uns["img_to_patient_dict"].items()
         }
         # Reduce to observed patients:
-        label_tensors = dict(
-            [(k, v) for k, v in label_tensors.items() if v is not None]
-        )
+        label_tensors = dict([(k, v) for k, v in label_tensors.items() if v is not None])
 
         # Save processed data to attributes.
         for k, adata in self.img_celldata.items():
@@ -880,9 +833,7 @@ class DatasetPascualReguant(Dataset):
         nuclei_df = read_excel(os.path.join(self.data_path, metadata["fn"][0]))
         membranes_df = read_excel(os.path.join(self.data_path, metadata["fn"][1]))
 
-        celldata_df = nuclei_df.join(
-            membranes_df.set_index("ObjectNumber"), on="ObjectNumber"
-        )
+        celldata_df = nuclei_df.join(membranes_df.set_index("ObjectNumber"), on="ObjectNumber")
 
         feature_cols = [
             "Bcl6",
@@ -937,9 +888,7 @@ class DatasetPascualReguant(Dataset):
             "Vimentin",
             "cKit",
         ]
-        celldata = AnnData(
-            X=celldata_df[feature_cols], obs=celldata_df[["ObjectNumber", "cell_class"]]
-        )
+        celldata = AnnData(X=celldata_df[feature_cols], obs=celldata_df[["ObjectNumber", "cell_class"]])
 
         celldata.uns["metadata"] = metadata
         celldata.obs["img_keys"] = np.repeat("tonsil_image", repeats=celldata.shape[0])
@@ -951,23 +900,18 @@ class DatasetPascualReguant(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(
-                list(celldata.obs[metadata["cluster_col"]]), dtype="category"
-            ).map(self.cell_type_merge_dict)
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="category").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -980,9 +924,7 @@ class DatasetPascualReguant(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -1181,12 +1123,8 @@ class DatasetSchuerch(Dataset):
             "B3GAT1",
             "MMP12",
         ]
-        X = DataFrame(
-            np.array(celldata_df[feature_cols]), columns=feature_cols_hgnc_names
-        )
-        celldata = AnnData(
-            X=X, obs=celldata_df[["File Name", "patients", "ClusterName"]]
-        )
+        X = DataFrame(np.array(celldata_df[feature_cols]), columns=feature_cols_hgnc_names)
+        celldata = AnnData(X=X, obs=celldata_df[["File Name", "patients", "ClusterName"]])
         celldata.var_names_make_unique()
 
         celldata.uns["metadata"] = metadata
@@ -1204,24 +1142,19 @@ class DatasetSchuerch(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(
-                list(celldata.obs[metadata["cluster_col"]]), dtype="category"
-            ).map(self.cell_type_merge_dict)
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="category").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -1234,9 +1167,7 @@ class DatasetSchuerch(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -1276,9 +1207,7 @@ class DatasetSchuerch(Dataset):
             label_selection = set(label_cols.keys())
         else:
             label_selection = set(label_selection)
-        label_cols_toread = list(
-            label_selection.intersection(set(list(label_cols.keys())))
-        )
+        label_cols_toread = list(label_selection.intersection(set(list(label_cols.keys()))))
         if "DFS" in label_selection:
             censor_col = "DFS_Censor"
             label_cols_toread = label_cols_toread + [censor_col]
@@ -1288,8 +1217,7 @@ class DatasetSchuerch(Dataset):
         if "Diffuse" in label_cols_toread:
             label_cols_toread = label_cols_toread + ["Diffuse.1"]
         label_cols_toread_csv = [
-            col_renaming[col] if col in list(col_renaming.keys()) else col
-            for col in label_cols_toread
+            col_renaming[col] if col in list(col_renaming.keys()) else col for col in label_cols_toread
         ]
 
         usecols = label_cols_toread_csv + [patient_col]
@@ -1309,34 +1237,28 @@ class DatasetSchuerch(Dataset):
         long_patient_data.columns = patient_data.columns
         long_patient_data["copy"] = ["A", "B"] * 35
         if "Diffuse" in label_cols_toread:
-            long_patient_data = long_patient_data.rename(
-                columns={"Diffuse": "DiffuseA", "Diffuse.1": "DiffuseB"}
-            )
+            long_patient_data = long_patient_data.rename(columns={"Diffuse": "DiffuseA", "Diffuse.1": "DiffuseB"})
             long_patient_data["Diffuse"] = np.zeros((70,))
-            long_patient_data.loc[
-                long_patient_data["copy"] == "A", "Diffuse"
-            ] = long_patient_data[long_patient_data["copy"] == "A"]["DiffuseA"]
-            long_patient_data.loc[
-                long_patient_data["copy"] == "B", "Diffuse"
-            ] = long_patient_data[long_patient_data["copy"] == "B"]["DiffuseB"]
+            long_patient_data.loc[long_patient_data["copy"] == "A", "Diffuse"] = long_patient_data[
+                long_patient_data["copy"] == "A"
+            ]["DiffuseA"]
+            long_patient_data.loc[long_patient_data["copy"] == "B", "Diffuse"] = long_patient_data[
+                long_patient_data["copy"] == "B"
+            ]["DiffuseB"]
             long_patient_data.loc[long_patient_data["Diffuse"].isnull(), "Diffuse"] = 0
             # use the proportion of diffuse cores within this spot as probability of being diffuse
-            long_patient_data["Diffuse"] = (
-                long_patient_data["Diffuse"].astype(float) / 2
-            )
+            long_patient_data["Diffuse"] = long_patient_data["Diffuse"].astype(float) / 2
             long_patient_data = long_patient_data.drop("DiffuseA", axis=1)
             long_patient_data = long_patient_data.drop("DiffuseB", axis=1)
         if "LA" in label_cols_toread:
-            long_patient_data = long_patient_data.rename(
-                columns={"LA": "LAA", "LA.1": "LAB"}
-            )
+            long_patient_data = long_patient_data.rename(columns={"LA": "LAA", "LA.1": "LAB"})
             long_patient_data["LA"] = np.zeros((70,))
-            long_patient_data.loc[
-                long_patient_data["copy"] == "A", "LA"
-            ] = long_patient_data[long_patient_data["copy"] == "A"]["LAA"]
-            long_patient_data.loc[
-                long_patient_data["copy"] == "B", "LA"
-            ] = long_patient_data[long_patient_data["copy"] == "B"]["LAB"]
+            long_patient_data.loc[long_patient_data["copy"] == "A", "LA"] = long_patient_data[
+                long_patient_data["copy"] == "A"
+            ]["LAA"]
+            long_patient_data.loc[long_patient_data["copy"] == "B", "LA"] = long_patient_data[
+                long_patient_data["copy"] == "B"
+            ]["LAB"]
             long_patient_data.loc[long_patient_data["LA"].isnull(), "LA"] = 0
             # use the proportion of LA cores within this spot as probability of being LA
             long_patient_data["LA"] = long_patient_data["LA"].astype(float) / 2
@@ -1350,15 +1272,9 @@ class DatasetSchuerch(Dataset):
         # transform this to have as output of this section dictionary by image with a dictionary by labels as values
         # which can be easily queried by image in a data generator.
         # Subset labels and label types:
-        label_cols = {
-            label: type
-            for label, type in label_cols.items()
-            if label in label_selection
-        }
+        label_cols = {label: type for label, type in label_cols.items() if label in label_selection}
         label_tensors = {}
-        label_names = (
-            {}
-        )  # Names of individual variables in each label vector (eg. categories in onehot-encoding).
+        label_names = {}  # Names of individual variables in each label vector (eg. categories in onehot-encoding).
         # 1. Standardize continuous labels to z-scores:
         continuous_mean = {
             feature: tissue_meta_data[feature].mean(skipna=True)
@@ -1372,9 +1288,9 @@ class DatasetSchuerch(Dataset):
         }
         for feature in list(label_cols.keys()):
             if label_cols[feature] == "continuous":
-                label_tensors[feature] = (
-                    tissue_meta_data[feature].values - continuous_mean[feature]
-                ) / continuous_std[feature]
+                label_tensors[feature] = (tissue_meta_data[feature].values - continuous_mean[feature]) / continuous_std[
+                    feature
+                ]
                 label_names[feature] = [feature]
         for feature in list(label_cols.keys()):
             if label_cols[feature] == "percentage":
@@ -1395,9 +1311,7 @@ class DatasetSchuerch(Dataset):
                     drop_first=False,
                 )
                 # Change all entries of corresponding observation to np.nan instead.
-                idx_nan_col = np.array(
-                    [i for i, x in enumerate(oh.columns) if x.endswith(">nan")]
-                )
+                idx_nan_col = np.array([i for i, x in enumerate(oh.columns) if x.endswith(">nan")])
                 if len(idx_nan_col) > 0:
                     assert len(idx_nan_col) == 1, "fatal processing error"
                     nan_rows = np.where(oh.iloc[:, idx_nan_col[0]].values == 1.0)[0]
@@ -1435,15 +1349,12 @@ class DatasetSchuerch(Dataset):
         # image keys are of the form reg0xx_A or reg0xx_B with xx going from 01 to 70
         # label tensors have entries (1+2)_A, (1+2)_B, (2+3)_A, (2+3)_B, ...
         img_to_index = {
-            img: 2 * ((int(img[4:6]) - 1) // 2)
-            if img[7] == "A"
-            else 2 * ((int(img[4:6]) - 1) // 2) + 1
+            img: 2 * ((int(img[4:6]) - 1) // 2) if img[7] == "A" else 2 * ((int(img[4:6]) - 1) // 2) + 1
             for img in self.img_to_patient_dict.keys()
         }
         label_tensors = {
             img: {
-                feature_name: np.array(features[index, :], ndmin=1)
-                for feature_name, features in label_tensors.items()
+                feature_name: np.array(features[index, :], ndmin=1) for feature_name, features in label_tensors.items()
             }
             for img, index in img_to_index.items()
         }
@@ -1528,23 +1439,18 @@ class DatasetLohoff(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(
-                list(celldata.obs[metadata["cluster_col"]]), dtype="category"
-            ).map(self.cell_type_merge_dict)
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="category").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -1557,9 +1463,7 @@ class DatasetLohoff(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -1756,9 +1660,7 @@ class DatasetLuWT(Dataset):
 
         celldata = AnnData(
             X=celldata_df[feature_cols],
-            obs=celldata_df[
-                ["CellID", "FOV", "CellTypeID_new", "Center_x", "Center_y"]
-            ],
+            obs=celldata_df[["CellID", "FOV", "CellTypeID_new", "Center_x", "Center_y"]],
         )
 
         celldata.uns["metadata"] = metadata
@@ -1768,34 +1670,27 @@ class DatasetLuWT(Dataset):
         # register x and y coordinates into obsm
         celldata.obsm["spatial"] = np.array(celldata_df[metadata["pos_cols"]])
 
-        img_to_patient_dict = {
-            str(x): "patient" for x in celldata_df[metadata["image_col"]].values
-        }
+        img_to_patient_dict = {str(x): "patient" for x in celldata_df[metadata["image_col"]].values}
         # img_to_patient_dict = {k: "p_1" for k in img_keys}
         celldata.uns["img_to_patient_dict"] = img_to_patient_dict
         self.img_to_patient_dict = img_to_patient_dict
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(
-                self.cell_type_merge_dict
-            )
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("str")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "str"
+        )
         # celldata = celldata[celldata.obs[metadata["cluster_col_preprocessed"]] != 'Unknown']
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -1808,9 +1703,7 @@ class DatasetLuWT(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -2007,9 +1900,7 @@ class DatasetLuTET2(Dataset):
 
         celldata = AnnData(
             X=celldata_df[feature_cols],
-            obs=celldata_df[
-                ["CellID", "FOV", "CellTypeID_new", "Center_x", "Center_y"]
-            ],
+            obs=celldata_df[["CellID", "FOV", "CellTypeID_new", "Center_x", "Center_y"]],
         )
 
         celldata.uns["metadata"] = metadata
@@ -2019,32 +1910,25 @@ class DatasetLuTET2(Dataset):
         # register x and y coordinates into obsm
         celldata.obsm["spatial"] = np.array(celldata_df[metadata["pos_cols"]])
 
-        img_to_patient_dict = {
-            str(x): "patient" for x in celldata_df[metadata["image_col"]].values
-        }
+        img_to_patient_dict = {str(x): "patient" for x in celldata_df[metadata["image_col"]].values}
         # img_to_patient_dict = {k: "p_1" for k in img_keys}
         celldata.uns["img_to_patient_dict"] = img_to_patient_dict
         self.img_to_patient_dict = img_to_patient_dict
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(
-                self.cell_type_merge_dict
-            )
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="str").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("str")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "str"
+        )
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1
@@ -2057,9 +1941,7 @@ class DatasetLuTET2(Dataset):
         image_col = self.celldata.uns["metadata"]["image_col"]
         img_celldata = {}
         for k in self.celldata.uns["img_keys"]:
-            img_celldata[str(k)] = self.celldata[
-                self.celldata.obs[image_col] == k
-            ].copy()
+            img_celldata[str(k)] = self.celldata[self.celldata.obs[image_col] == k].copy()
         self.img_celldata = img_celldata
 
     def _register_graph_features(self, label_selection):
@@ -2245,24 +2127,19 @@ class DatasetSalasIss(Dataset):
 
         # add clean cluster column which removes regular expression from cluster_col
         celldata.obs[metadata["cluster_col_preprocessed"]] = list(
-            pd.Series(
-                list(celldata.obs[metadata["cluster_col"]]), dtype="category"
-            ).map(self.cell_type_merge_dict)
+            pd.Series(list(celldata.obs[metadata["cluster_col"]]), dtype="category").map(self.cell_type_merge_dict)
         )
-        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[
-            metadata["cluster_col_preprocessed"]
-        ].astype("category")
+        celldata.obs[metadata["cluster_col_preprocessed"]] = celldata.obs[metadata["cluster_col_preprocessed"]].astype(
+            "category"
+        )
 
         # register node type names
-        node_type_names = list(
-            np.unique(celldata.obs[metadata["cluster_col_preprocessed"]])
-        )
+        node_type_names = list(np.unique(celldata.obs[metadata["cluster_col_preprocessed"]]))
         celldata.uns["node_type_names"] = {x: x for x in node_type_names}
         node_types = np.zeros((celldata.shape[0], len(node_type_names)))
         node_type_idx = np.array(
             [
-                node_type_names.index(x)
-                for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
+                node_type_names.index(x) for x in celldata.obs[metadata["cluster_col_preprocessed"]].values
             ]  # index in encoding vector
         )
         node_types[np.arange(0, node_type_idx.shape[0]), node_type_idx] = 1

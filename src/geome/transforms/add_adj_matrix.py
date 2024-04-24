@@ -17,12 +17,12 @@ class AddAdjMatrix(Transform):
                     'X' can be used for the main matrix.
     overwrite (bool): Whether to overwrite the existing adjacency matrix.
 
-    Attributes:
+    Attributes
     ----------
         location (str): The location where the adjacency matrix will be added.
         overwrite (bool): Whether to overwrite the existing adjacency matrix.
 
-    Methods:
+    Methods
     -------
         __call__(adata: AnnData) -> AnnData:
             Adds the spatial connectivities matrix to the given location in the AnnData object.
@@ -47,7 +47,7 @@ class AddAdjMatrix(Transform):
         ----
         adata (AnnData): The AnnData object.
 
-        Returns:
+        Returns
         -------
             AnnData: The updated AnnData object with the added adjacency matrix.
         """

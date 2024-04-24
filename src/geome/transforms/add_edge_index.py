@@ -30,7 +30,7 @@ class AddEdgeIndex(Transform):
         ----
         adata (AnnData): The AnnData object.
 
-        Returns:
+        Returns
         -------
         AnnData: The updated AnnData object with the added edge_index.
         """

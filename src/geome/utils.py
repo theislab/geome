@@ -11,11 +11,11 @@ def get_from_loc(adata: AnnData, location: str) -> Any:
     adata (AnnData): The AnnData object.
     location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
 
-    Returns:
+    Returns
     -------
         Any: The value at the specified location.
 
-    Raises:
+    Raises
     ------
         KeyError: If the specified location does not exist in the AnnData object.
     """
@@ -25,9 +25,7 @@ def get_from_loc(adata: AnnData, location: str) -> Any:
     axis, key = location.split("/")
 
     if key not in getattr(adata, axis, {}):
-        raise KeyError(
-            f"The specified key '{key}' does not exist in the '{axis}' of the AnnData object."
-        )
+        raise KeyError(f"The specified key '{key}' does not exist in the '{axis}' of the AnnData object.")
 
     return getattr(adata, axis)[key]
 
@@ -42,15 +40,13 @@ def set_to_loc(adata: AnnData, location: str, value: Any, override: bool = False
     value (Any): The value to assign.
     override (bool, optional): If set to True, will override the existing value at the location. Defaults to False.
 
-    Raises:
+    Raises
     ------
         ValueError: If the specified location already exists and override is set to False.
     """
     if location == "X":
         if not override and hasattr(adata, "X"):
-            raise ValueError(
-                "The location 'X' already has data. To override, set the 'override' parameter to True."
-            )
+            raise ValueError("The location 'X' already has data. To override, set the 'override' parameter to True.")
         adata.X = value
     else:
         axis, key = location.split("/")
@@ -70,7 +66,7 @@ def check_loc(location: str):
     ----
     location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
 
-    Raises:
+    Raises
     ------
         ValueError: If the location format is incorrect.
     """

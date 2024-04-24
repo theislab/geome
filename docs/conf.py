@@ -15,23 +15,23 @@ sys.path.insert(0, str(HERE / "extensions"))
 
 
 # Mock imports
-autodoc_mock_imports = ["torch","torch_geometric","squidpy","pytorch_lightning"]
+autodoc_mock_imports = ["torch", "torch_geometric", "squidpy", "pytorch_lightning"]
 
 
 # -- Project information -----------------------------------------------------
 
-#info = metadata("geome")
-#project_name = info["Name"]
+# info = metadata("geome")
+# project_name = info["Name"]
 project_name = "geome"
-#author = info["Author"]
+# author = info["Author"]
 author = "Selman Ozleyen, Chelsea Bright, Marcella Toth"
 copyright = f"{datetime.now():%Y}, {author}."
-#version = info["Version"]
+# version = info["Version"]
 version = "0.1"
-repository_url = f"https://github.com/theislab/geome"
+repository_url = "https://github.com/theislab/geome"
 
 # The full version, including alpha/beta/rc tags
-#release = info["Version"]
+# release = info["Version"]
 
 bibtex_bibfiles = ["references.bib"]
 templates_path = ["_templates"]
@@ -52,7 +52,7 @@ html_context = {
 # They can be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "myst_nb",
-    #"sphinx_copybutton",
+    # "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
@@ -85,7 +85,7 @@ myst_enable_extensions = [
 myst_url_schemes = ("http", "https", "mailto")
 nb_output_stderr = "remove"
 nb_execution_mode = "off"
-nbsphinx_execute = 'never'
+nbsphinx_execute = "never"
 nb_merge_streams = True
 typehints_defaults = "braces"
 

@@ -13,10 +13,9 @@ import torch
 
 def init_weights(m):
     if isinstance(m, nn.Linear):
-        torch.nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+        torch.nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
         if m.bias is not None:
             m.bias.data.fill_(0.01)
-
 
 
 class NonLinearNCEM(pl.LightningModule):
@@ -64,43 +63,27 @@ class NonLinearNCEM(pl.LightningModule):
         return optimizer
 
     def training_step(self, batch, _):
-
         self.batch_size = batch.batch_size
 
         mu, sigma = self.forward(batch)
-        loss = self.loss_module(
-            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
-        )
+        loss = self.loss_module(mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size])
         self.log("train_loss", loss, batch_size=self.batch_size)
         return loss
 
     def validation_step(self, batch, _):
-
         self.batch_size = batch.batch_size
 
         mu, sigma = self.forward(batch)
-        val_loss = self.loss_module(
-            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
-        )
-        val_r2_score = r2_score(
-            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
-        )
-        self.log(
-            "val_r2_score", val_r2_score, prog_bar=True, batch_size=self.batch_size
-        )
+        val_loss = self.loss_module(mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size])
+        val_r2_score = r2_score(batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size])
+        self.log("val_r2_score", val_r2_score, prog_bar=True, batch_size=self.batch_size)
         self.log("val_loss", val_loss, prog_bar=True, batch_size=self.batch_size)
 
     def test_step(self, batch, _):
         self.batch_size = batch.batch_size
 
         mu, sigma = self.forward(batch)
-        test_loss = self.loss_module(
-            mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size]
-        )
-        test_r2_score = r2_score(
-            batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size]
-        )
-        self.log(
-            "test_r2_score", test_r2_score, prog_bar=True, batch_size=self.batch_size
-        )
+        test_loss = self.loss_module(mu[: self.batch_size], batch.y[: self.batch_size], sigma[: self.batch_size])
+        test_r2_score = r2_score(batch.y.cpu()[: self.batch_size], mu.cpu()[: self.batch_size])
+        self.log("test_r2_score", test_r2_score, prog_bar=True, batch_size=self.batch_size)
         self.log("test_loss", test_loss, prog_bar=True, batch_size=self.batch_size)

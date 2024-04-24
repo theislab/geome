@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Sequence
+from collections.abc import Sequence
+from typing import Literal
 
 import pytorch_lightning as pl
 from torch_geometric.data import Batch, Data
@@ -35,7 +36,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
             If "node" is selected, `batch_size` means the number of nodes and `datas` is expected to be a list of Data objects
             with an edge_index attribute. Defaults to "node".
 
-        Raises:
+        Raises
         ------
             ValueError: If `learning_type` is not one of {"node", "graph"}.
         """
@@ -58,7 +59,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         ----
         stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
 
-        Returns:
+        Returns
         -------
             None
         """
@@ -90,7 +91,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         ----
         stage (Optional[str]): The stage of training to set up the data loader for. Defaults to None.
 
-        Returns:
+        Returns
         -------
             None
         """
@@ -155,7 +156,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         shuffle (bool, optional): whether to shuffle the data. Defaults to False.
         kwargs: arguments passed to the pyg.DataListLoader
 
-        Returns:
+        Returns
         -------
         DataListLoader: the graph dataloader
         """
@@ -172,7 +173,7 @@ class GraphAnnDataModule(pl.LightningDataModule):
         shuffle (bool, optional): whether to shuffle the data. Defaults to False.
         kwargs: arguments passed to the pyg.NeighborLoader
 
-        Returns:
+        Returns
         -------
             NeighborLoader: the node dataloader
         """

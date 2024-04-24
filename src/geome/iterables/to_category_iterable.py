@@ -31,7 +31,7 @@ class ToCategoryIterable(ToIterable):
         ----
         adata (AnnData): AnnData object to iterate over.
 
-        Yields:
+        Yields
         ------
         adata[adata.axis[category] == cat] for each cat in adata.axis[category].categories
         """

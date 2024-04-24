@@ -1,7 +1,6 @@
 """
 Linear baseline model.
 """
-import torch
 import torch.nn as nn
 
 # Linear NCEM spatial and nonspatial models as defined in https://www.biorxiv.org/content/10.1101/2021.07.11.451750v1
@@ -26,7 +25,6 @@ class LinearNonSpatial(nn.Module):
         Inputs:
             x - Input features per node
         """
-
         return self.linear(x)
 
 
@@ -53,11 +51,9 @@ class LinearSpatial(nn.Module):
             self.num_features = in_channels[0] + in_channels[0] ** 2 + in_channels[1]
             self.linear = nn.Linear(self.num_features, self.num_genes)
 
-
     def forward(self, x):
         """
         Inputs:
             x - Input features per node
         """
-
         return self.linear(x)
