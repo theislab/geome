@@ -4,7 +4,7 @@ from anndata import AnnData
 
 from geome.utils import get_from_loc, set_to_loc
 
-from .transform import Transform
+from .base.transform import Transform
 
 
 class AddEdgeWeight(Transform):

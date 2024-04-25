@@ -4,7 +4,7 @@ from typing import Callable
 
 from anndata import AnnData
 
-from .transform import Transform
+from .base.transform import Transform
 
 
 class Compose(Transform):

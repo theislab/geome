@@ -4,7 +4,7 @@ from anndata import AnnData
 from geome.transforms.utils import check_adj_matrix_loc
 from geome.utils import get_from_loc, set_to_loc
 
-from .transform import Transform
+from .base.transform import Transform
 
 
 class AddEdgeIndex(Transform):

@@ -4,12 +4,12 @@ from typing import Callable
 
 from anndata import AnnData
 
-from geome.iterables import ToCategoryIterable
+from geome.iterables import ToCategoryIterator
 
-from .default import Ann2DataDefault
+from .basic import Ann2DataBasic
 
 
-class Ann2DataByCategory(Ann2DataDefault):
+class Ann2DataByCategory(Ann2DataBasic):
     """Convert anndata object into a dictionary of torch.tensors then create pyg.Data from them."""
 
     def __init__(
@@ -36,7 +36,7 @@ class Ann2DataByCategory(Ann2DataDefault):
         """
         super().__init__(
             fields=fields,
-            adata2iter=ToCategoryIterable(category, axis="obs"),
+            adata2iter=ToCategoryIterator(category, axis="obs"),
             preprocess=preprocess,
             transform=transform,
         )

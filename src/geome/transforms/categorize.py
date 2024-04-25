@@ -2,7 +2,7 @@ from typing import Literal
 
 from anndata import AnnData
 
-from .transform import Transform
+from .base.transform import Transform
 
 
 class Categorize(Transform):
