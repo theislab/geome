@@ -9,7 +9,7 @@ from anndata import AnnData
 from torch_geometric.data import Data
 
 
-class Ann2Data(ABC):
+class Ann2DataAbstract(ABC):
     """Abstract class that transforms an iterable of AnnData to Pytorch Geometric Data objects."""
 
     def __init__(

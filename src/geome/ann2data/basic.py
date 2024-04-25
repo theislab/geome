@@ -10,10 +10,10 @@ from scipy import sparse
 
 from geome.utils import get_from_loc
 
-from .ann2data import Ann2Data
+from .base.abstract import Ann2DataAbstract
 
 
-class Ann2DataDefault(Ann2Data):
+class Ann2DataBasic(Ann2DataAbstract):
     """Convert anndata object into a dictionary of torch.tensors then create pyg.Data from them."""
 
     def __init__(
@@ -77,20 +77,21 @@ class Ann2DataDefault(Ann2Data):
         self._last_fields_info[field]["sizes"] = [
             arr.shape if len(arrs) == 1 else (*(len(arr.shape) - 1) * ["-"], arr.shape[-1]) for arr in arrs
         ]
-        return torch.from_numpy(np.concatenate(arrs, axis=-1)).to(torch.float)
+        return torch.cat(arrs, dim=-1)
 
     def _convert_to_tensor(self, obj):
-        if isinstance(obj, torch.Tensor):
+        if torch.is_tensor(obj):
             return obj
-        # if obj is categorical
-        if obj.dtype.name == "category":
-            return pd.get_dummies(obj).to_numpy()
-        if not np.issubdtype(obj.dtype, np.number):
-            return obj.astype(np.float)
         if sparse.issparse(obj):
-            return np.array(obj.todense())
+            return torch.from_numpy(obj.todense()).to(torch.float)
+        if obj.dtype.name == "category":
+            return torch.from_numpy(pd.get_dummies(obj).to_numpy()).to(torch.float)
+        if not np.issubdtype(obj.dtype, np.number):
+            return torch.from_numpy(obj.astype(np.float)).to(torch.float)
+        if isinstance(obj, np.ndarray):
+            return torch.from_numpy(obj).to(torch.float)
         else:
-            return obj
+            return obj  # TODO(selman): throw error here
 
     def __repr__(self) -> str:
         s = ""

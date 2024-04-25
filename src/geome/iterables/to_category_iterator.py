@@ -1,13 +1,14 @@
 from typing import Literal
+from collections.abc import Iterator
 
 from anndata import AnnData
 
 from geome.utils import get_from_loc
 
-from .to_iterable import ToIterable
+from .base.to_iterable import ToIterable
 
 
-class ToCategoryIterable(ToIterable):
+class ToCategoryIterator(ToIterable):
     """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
 
     Preserves the categories in the resulting AnnData obs and var Series.
@@ -22,10 +23,11 @@ class ToCategoryIterable(ToIterable):
         self.axis = axis
         self.preserve_categories = preserve_categories
 
-    def __call__(self, adata: AnnData):
+    def __call__(self, adata: AnnData) -> Iterator[AnnData]:
         """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
 
-        Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True.
+        Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True. 
+        Returns an iterator, which means it can be only iterated once per call.
 
         Args:
         ----

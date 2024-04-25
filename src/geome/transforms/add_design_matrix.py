@@ -5,7 +5,7 @@ from anndata import AnnData
 from geome.transforms.utils import check_adj_matrix_loc
 from geome.utils import check_loc, get_from_loc, set_to_loc
 
-from .transform import Transform
+from .base.transform import Transform
 
 
 def design_matrix(A: np.ndarray, Xl: np.ndarray, Xc: np.ndarray) -> np.ndarray:
