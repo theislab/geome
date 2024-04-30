@@ -1,5 +1,6 @@
-from typing import Literal
 from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import Literal
 
 from anndata import AnnData
 
@@ -8,25 +9,33 @@ from geome.utils import get_from_loc
 from .base.to_iterable import ToIterable
 
 
+@dataclass
 class ToCategoryIterator(ToIterable):
     """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
 
-    Preserves the categories in the resulting AnnData obs and var Series.
+    Args:
+    ----
+    category (str): The category to iterate over.
+    axis (int | str): The axis along which to iterate over the categories. Can be either 0, 1, "obs" or "var".
+        0 or "obs" means the categories are in the observation axis.
+        1 or "var" means the categories are in the variable axis.
+    preserve_categories (bool): Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True.
     """
 
-    def __init__(self, category: str, axis: Literal[0, 1, "obs", "var"] = "obs", preserve_categories: bool = True):
-        self.category = category
-        if axis not in (0, 1, "obs", "var"):
+    category: str
+    axis: Literal[0, 1, "obs", "var"] = "obs"
+    preserve_categories: bool = True
+
+    def __post_init__(self):
+        if self.axis not in (0, 1, "obs", "var"):
             raise TypeError("axis needs to be one of obs, var, 0 or 1")
-        if isinstance(axis, int):
-            axis = ("obs", "var")[axis]
-        self.axis = axis
-        self.preserve_categories = preserve_categories
+        if isinstance(self.axis, int):
+            self.axis = ("obs", "var")[self.axis]
 
     def __call__(self, adata: AnnData) -> Iterator[AnnData]:
         """Iterates over `adata` by category on the given axis (either obs(0) or var(1)).
 
-        Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True. 
+        Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True.
         Returns an iterator, which means it can be only iterated once per call.
 
         Args:

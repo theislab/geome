@@ -1,26 +1,33 @@
+from dataclasses import dataclass, field
+
 import squidpy as sq
 from anndata import AnnData
-
-from geome.transforms.utils import check_adj_matrix_loc
-from geome.utils import set_to_loc
 
 from .base.transform import Transform
 
 
+@dataclass
 class AddAdjMatrix(Transform):
     """Add the adjacency matrix to the AnnData object.
 
     Args:
     ----
-    location (str): The location to add the adjacency matrix to.
-                    Format should be 'attribute/key', e.g., 'obsp/adjacency_matrix'.
-                    'X' can be used for the main matrix.
-    overwrite (bool): Whether to overwrite the existing adjacency matrix.
+    spatial_key (str): Key in anndata.AnnData.obsm where spatial coordinates are stored.
+    key_added (str): The key to add the adjacency matrix to.
+    func_args (dict): Additional arguments to pass to the `spatial_neighbors` function.
+
+    Calls the `spatial_neighbors` function from `squidpy` to calculate the spatial connectivities matrix internally.
+    See `here <https://squidpy.readthedocs.io/en/stable/api/squidpy.gr.spatial_neighbors.html>`_ for more information on the additional arguments.
+
+    Modifies the ``adata`` with the following keys:
+
+        - :attr:`anndata.AnnData.obsp` ``['{{key_added}}_connectivities']`` - the spatial connectivities.
+        - :attr:`anndata.AnnData.obsp` ``['{{key_added}}_distances']`` - the spatial distances.
+        - :attr:`anndata.AnnData.uns`  ``['{{key_added}}']`` - :class:`dict` containing parameters.
 
     Attributes
     ----------
-        location (str): The location where the adjacency matrix will be added.
-        overwrite (bool): Whether to overwrite the existing adjacency matrix.
+        spatial_key (str): The location where the adjacency matrix will be added.
 
     Methods
     -------
@@ -28,34 +35,15 @@ class AddAdjMatrix(Transform):
             Adds the spatial connectivities matrix to the given location in the AnnData object.
     """
 
-    def __init__(self, location: str, overwrite: bool = False):
-        """Initialize the AddAdjMatrix class.
+    spatial_key: str
+    key_added: str
+    func_args: dict = field(default_factory=dict)
 
-        Args:
-        ----
-        location (str): The location to add the adjacency matrix to.
-        overwrite (bool): Whether to overwrite the existing adjacency matrix.
-        """
-        check_adj_matrix_loc(location)
-        self.location = location
-        self.overwrite = overwrite
-
-    def __call__(self, adata: AnnData) -> AnnData:
-        """Add the spatial connectivities matrix to the given location.
-
-        Args:
-        ----
-        adata (AnnData): The AnnData object.
-
-        Returns
-        -------
-            AnnData: The updated AnnData object with the added adjacency matrix.
-        """
-        adj_matrix = sq.gr.spatial_neighbors(
+    def __call__(self, adata: AnnData) -> AnnData:  # noqa: D102
+        sq.gr.spatial_neighbors(
             adata,
-            coord_type="generic",
-            key_added="spatial",
-            copy=True,
-        )[0]
-        set_to_loc(adata, self.location, adj_matrix, self.overwrite)
+            key_added=self.key_added,
+            spatial_key=self.spatial_key,
+            **self.func_args,
+        )
         return adata

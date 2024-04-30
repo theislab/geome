@@ -1,8 +1,7 @@
-from .base.transform import Transform
 from .add_adj_matrix import AddAdjMatrix
 from .add_design_matrix import AddDesignMatrix
-from .add_edge_index import AddEdgeIndex
-from .add_edge_weight import AddEdgeWeight
+from .add_edge_index import AddEdgeIndex, AddEdgeIndexFromAdj
+from .base.transform import Transform
 from .categorize import Categorize
 from .compose import Compose
 
@@ -13,5 +12,5 @@ __all__ = [
     "Categorize",
     "Compose",
     "AddEdgeIndex",
-    "AddEdgeWeight",
+    "AddEdgeIndexFromAdj",
 ]
