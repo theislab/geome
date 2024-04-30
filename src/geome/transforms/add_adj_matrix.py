@@ -39,17 +39,7 @@ class AddAdjMatrix(Transform):
     key_added: str
     func_args: dict = field(default_factory=dict)
 
-    def __call__(self, adata: AnnData) -> AnnData:
-        """Add the spatial connectivities matrix to the given location. Calls the `spatial_neighbors` function from `squidpy`.
-
-        Args:
-        ----
-        adata (AnnData): The AnnData object.
-
-        Returns
-        -------
-            AnnData: The updated AnnData object with the added adjacency matrix.
-        """
+    def __call__(self, adata: AnnData) -> AnnData:  # noqa: D102
         sq.gr.spatial_neighbors(
             adata,
             key_added=self.key_added,

@@ -1,6 +1,7 @@
 import anndata as ad
 import numpy as np
 import scipy.sparse as sp
+import squidpy as sq
 import torch
 
 from geome import transforms
@@ -46,3 +47,34 @@ def test_add_edge_index_from_adj():
         adata.uns["edge_weight_sparse"],
         torch.tensor(edge_weight, dtype=torch.float),
     )
+
+
+def test_add_edge_index():
+    # Define the coordinates as a numpy array
+    coordinates = np.random.rand(50, 2)
+    median_dist = np.median(np.linalg.norm(coordinates[:, None, :] - coordinates[None, :, :], axis=-1))
+
+    # Create an AnnData object
+    adata = ad.AnnData(np.random.rand(50, 2), obsm={"spatial_init": coordinates})
+    sq.gr.spatial_neighbors(
+        adata, coord_type="generic", radius=median_dist, spatial_key="spatial_init", key_added="gt", n_neighs=4
+    )
+    tf = transforms.AddEdgeIndex(
+        spatial_key="spatial_init",
+        key_added="pred",
+        func_args={"radius": median_dist, "n_neighs": 4},
+        edge_index_key="edge_index",
+        edge_weight_key="edge_weight",
+    )
+    # Extract the adjacency matrix from the results
+    adj_matrix = adata.obsp["gt_distances"]
+
+    # Convert the adjacency matrix to edge indices
+    nodes1, nodes2 = adj_matrix.nonzero()
+    edge_index_gt = torch.tensor(np.array([nodes1, nodes2]), dtype=torch.long)
+    edge_weight_gt = torch.tensor(adj_matrix[nodes1, nodes2], dtype=torch.double)
+
+    adata = tf(adata)
+    assert torch.equal(adata.uns["edge_index"], edge_index_gt)
+    assert torch.allclose(adata.uns["edge_weight"], edge_weight_gt)
+    assert np.allclose(adata.obsp["pred_distances"].A, adata.obsp["gt_distances"].A)

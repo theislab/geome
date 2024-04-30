@@ -63,7 +63,7 @@ class AddEdgeIndexFromAdj(Transform):
 
         return adata
 
-
+@dataclass
 class AddEdgeIndex(Transform):
     """Add the edge_index to the AnnData object given spatial coordinates.
 
