@@ -76,6 +76,7 @@ class AddEdgeIndex(Transform):
     key_added (str): The key to add the adjacency matrix to.
     func_args (dict): Additional arguments to pass to the `spatial_neighbors` function.
     edge_index_key (str): The key to store the edge_index in adata.uns.
+    gets_connectivities (bool): Whether to get the connectivities matrix otherwise will get distance matrix. Defaults to True.
     """
 
     spatial_key: str
@@ -83,8 +84,10 @@ class AddEdgeIndex(Transform):
     func_args: dict
     edge_index_key: str
     edge_weight_key: str | None = None
+    gets_connectivities: bool = True
 
     def __post_init__(self):
+        postfix = "connectivities" if self.gets_connectivities else "distances"
         self._transform = Compose(
             [
                 AddAdjMatrix(
@@ -93,7 +96,7 @@ class AddEdgeIndex(Transform):
                     func_args=self.func_args,
                 ),
                 AddEdgeIndexFromAdj(
-                    adj_matrix_loc=f"obsp/{self.key_added}_distances",
+                    adj_matrix_loc=f"obsp/{self.key_added}_{postfix}",
                     edge_index_key=self.edge_index_key,
                     edge_weight_key=self.edge_weight_key,
                 ),

@@ -65,6 +65,7 @@ def test_add_edge_index():
         func_args={"radius": median_dist, "n_neighs": 4},
         edge_index_key="edge_index",
         edge_weight_key="edge_weight",
+        gets_connectivities=False, # gets distances
     )
     # Extract the adjacency matrix from the results
     adj_matrix = adata.obsp["gt_distances"]

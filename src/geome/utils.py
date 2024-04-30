@@ -30,7 +30,7 @@ def get_from_loc(adata: AnnData, location: str) -> Any:
     return getattr(adata, axis)[key]
 
 
-def set_to_loc(adata: AnnData, location: str, value: Any, override: bool = False):
+def set_to_loc(adata: AnnData, location: str, value: Any, overwrite: bool = False):
     """Assign a value to a specified location in the AnnData object.
 
     Args:
@@ -38,22 +38,22 @@ def set_to_loc(adata: AnnData, location: str, value: Any, override: bool = False
     adata (AnnData): The AnnData object.
     location (str): The location in the AnnData object. Format should be 'attribute/key' or 'X'.
     value (Any): The value to assign.
-    override (bool, optional): If set to True, will override the existing value at the location. Defaults to False.
+    overwrite (bool, optional): If set to True, will overwrite the existing value at the location. Defaults to False.
 
     Raises
     ------
-        ValueError: If the specified location already exists and override is set to False.
+        ValueError: If the specified location already exists and overwrite is set to False.
     """
     if location == "X":
-        if not override and hasattr(adata, "X"):
-            raise ValueError("The location 'X' already has data. To override, set the 'override' parameter to True.")
+        if not overwrite and hasattr(adata, "X"):
+            raise ValueError("The location 'X' already has data. To overwrite, set the 'overwrite' parameter to True.")
         adata.X = value
     else:
         axis, key = location.split("/")
 
-        if not override and key in getattr(adata, axis, {}):
+        if not overwrite and key in getattr(adata, axis, {}):
             raise ValueError(
-                f"The location '{location}' already has data. To override, set the 'override' parameter to True."
+                f"The location '{location}' already has data. To overwrite, set the 'overwrite' parameter to True."
             )
 
         getattr(adata, axis)[key] = value
