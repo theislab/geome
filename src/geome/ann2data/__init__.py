@@ -1,6 +1,6 @@
 from .base.abstract import Ann2DataAbstract
-from .by_category import Ann2DataByCategory
 from .basic import Ann2DataBasic
+from .by_category import Ann2DataByCategory
 
 __all__ = [
     "Ann2DataBasic",

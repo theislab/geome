@@ -1,7 +1,7 @@
+from dataclasses import dataclass, field
+
 import squidpy as sq
 from anndata import AnnData
-
-from dataclasses import dataclass, field
 
 from .base.transform import Transform
 
@@ -41,7 +41,6 @@ class AddAdjMatrix(Transform):
 
     def __call__(self, adata: AnnData) -> AnnData:
         """Add the spatial connectivities matrix to the given location. Calls the `spatial_neighbors` function from `squidpy`.
-
 
         Args:
         ----
