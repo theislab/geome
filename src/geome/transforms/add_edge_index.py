@@ -55,7 +55,7 @@ class AddEdgeIndex(Transform):
                     torch.from_numpy(nodes2).to(torch.long),
                 ]
             )
-            edge_weight = adj_matrix[nodes1, nodes2]
+            edge_weight = torch.from_numpy(adj_matrix[nodes1, nodes2]).to(torch.float)
 
         # Store edge_weight in adata.uns
         set_to_loc(adata, f"uns/{self.edge_index_key}", edge_index, True)
