@@ -27,6 +27,7 @@ dependencies = [
     "torch_sparse",
     "torch_cluster",
     "torch_scatter",
+    "matplotlib==3.6",
     "squidpy",
     "scipy",
     "numpy",
