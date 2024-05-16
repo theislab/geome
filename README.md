@@ -32,8 +32,21 @@ pip install geome
 
 1. Install the latest development version:
 
+
+Without GPU support:
+
 ```bash
-mamba create -n geome  python=3.11
+mamba create -n geome  python=3.10
+mamba activate geome
+pip install torch==2.1.0
+pip install torch-scatter torch-sparse torch-cluster
+pip install git+https://github.com/theislab/geome.git@main
+```
+
+With GPU:
+
+```bash
+mamba create -n geome  python=3.10
 mamba activate geome
 mamba install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
 pip install torch-scatter torch-sparse torch-cluster -f https://data.pyg.org/whl/torch-2.1.0+cu121.html

@@ -50,6 +50,8 @@ jobs:
       - name: Install test dependencies
         run: |
           python -m pip install --upgrade pip wheel
+          pip install torch==2.1.0
+          pip install torch-scatter torch-sparse torch-cluster
       - name: Install dependencies
         run: |
           pip install ${{ matrix.pip-flags }} ".[dev,test]"
