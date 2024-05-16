@@ -4,6 +4,7 @@ from .add_edge_index import AddEdgeIndex, AddEdgeIndexFromAdj
 from .base.transform import Transform
 from .categorize import Categorize
 from .compose import Compose
+from .subset import Subset
 
 __all__ = [
     "Transform",
@@ -13,4 +14,5 @@ __all__ = [
     "Compose",
     "AddEdgeIndex",
     "AddEdgeIndexFromAdj",
+    "Subset",
 ]
