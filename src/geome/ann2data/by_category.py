@@ -16,6 +16,8 @@ class Ann2DataByCategory(Ann2DataBasic):
         self,
         fields: dict[str, list[str]],
         category: str,
+        axis: int | str = "obs",
+        preserve_categories: bool | list[str] = True,
         preprocess: list[Callable[[AnnData], AnnData]] | None = None,
         transform: list[Callable[[AnnData], AnnData]] | None = None,
     ):
@@ -33,10 +35,14 @@ class Ann2DataByCategory(Ann2DataBasic):
                     A default preprocessing step (AddAdjMatrix) is added if adj_matrix_loc is provided.
         transform: List of functions to transform the AnnData object after preprocessing.
         edge_index_key: Key for the edge index in the converted data. Defaults to 'edge_index'.
+        category: key for the category in the AnnData object to iterate over.
+        axis: axis to iterate over. Can be 'obs' or 'var'.
+        preserve_categories: If True, preserves the categories in the resulting AnnData obs and var Series.
+                            If a list is provided, only the categories in the list will be preserved.
         """
         super().__init__(
             fields=fields,
-            adata2iter=ToCategoryIterator(category, axis="obs"),
+            adata2iter=ToCategoryIterator(category, axis=axis, preserve_categories=preserve_categories),
             preprocess=preprocess,
             transform=transform,
         )
