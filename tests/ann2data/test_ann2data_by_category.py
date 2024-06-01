@@ -10,15 +10,22 @@ def test_sample_case_ann2data_basic():
     # make sure that there are two clusters of spatial coordinates
     # so that the resulting splits number of edges will be the same
     # as the sum of the number of edges in each cluster
-    func_args = {"radius": 4.0, "coord_type": "generic"}
+    func_args = {"radius": 4.0, "coord_type": "generic", "library_key": "image_id"}
     coordinates[:25, 0] += 100
     adata_gt = ad.AnnData(
         np.random.rand(50, 2),
-        obs={"cell_type": ["a"] * 25 + ["b"] * 25, "image_id": list("cd" * 25)},
+        obs={"cell_type": ["a"] * 20 + ["b"] * 20 + ["c"] * 5 + ["d"] * 5, "image_id": list("xy" * 20) + ["z"] * 10},
         obsm={"spatial_init": coordinates},
     )
     a2d = ann2data.Ann2DataByCategory(
-        fields={"x": ["X"], "edge_index": ["uns/edge_index"], "edge_weight": ["uns/edge_weight"]},
+        fields={
+            "x": ["X"],
+            "obs_names": ["obs_names"],
+            "var_names": ["var_names"],
+            "edge_index": ["uns/edge_index"],
+            "edge_weight": ["uns/edge_weight"],
+            "y": ["obs/cell_type"],
+        },
         category="cell_type",
         preprocess=transforms.Categorize(keys=["cell_type", "image_id"]),
         transform=transforms.AddEdgeIndex(
@@ -30,7 +37,7 @@ def test_sample_case_ann2data_basic():
         ),
     )
     datas = list(a2d(adata_gt.copy()))
-    assert len(datas) == 2
+    assert len(datas) == 3
     big_adata_tf = transforms.Compose(
         [
             transforms.Categorize(keys=["cell_type", "image_id"]),

@@ -87,7 +87,7 @@ class Ann2DataBasic(Ann2DataAbstract):
         if obj.dtype.name == "category":
             return torch.from_numpy(pd.get_dummies(obj).to_numpy()).to(torch.float)
         if not np.issubdtype(obj.dtype, np.number):
-            return torch.from_numpy(obj.astype(np.float)).to(torch.float)
+            return torch.from_numpy(obj.astype(np.float64)).to(torch.float)
         if isinstance(obj, np.ndarray):
             return torch.from_numpy(obj).to(torch.float)
         else:
