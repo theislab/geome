@@ -10,7 +10,7 @@ def test_sample_case_ann2data_basic():
     # make sure that there are two clusters of spatial coordinates
     # so that the resulting splits number of edges will be the same
     # as the sum of the number of edges in each cluster
-    func_args = {"radius": 4.0, "coord_type": "generic", "library_key": "image_id"}
+    func_args = {"radius": 4.0, "coord_type": "generic"}
     coordinates[:25, 0] += 100
     adata_gt = ad.AnnData(
         np.random.rand(50, 2),
