@@ -37,7 +37,7 @@ def test_sample_case_ann2data_basic():
         ),
     )
     datas = list(a2d(adata_gt.copy()))
-    assert len(datas) == 3
+    assert len(datas) == 4
     big_adata_tf = transforms.Compose(
         [
             transforms.Categorize(keys=["cell_type", "image_id"]),
