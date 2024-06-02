@@ -11,14 +11,28 @@ def test_sample_case_ann2data_basic():
     # so that the resulting splits number of edges will be the same
     # as the sum of the number of edges in each cluster
     func_args = {"radius": 4.0, "coord_type": "generic"}
-    coordinates[:25, 0] += 100
+    cell_type = ["a"] * 20 + ["b"] * 20 + ["c"] * 5 + ["d"] * 5
+    image_id = list("xy" * 20) + ["z"] * 10
+    # make clusters for each cell type
+    for i, ct in enumerate(set(cell_type)):
+        idx = np.where(np.array(cell_type) == ct)[0]
+        coordinates[idx, 0] += 100 * i
+        coordinates[idx, 1] += 100 * i
+
     adata_gt = ad.AnnData(
         np.random.rand(50, 2),
-        obs={"cell_type": ["a"] * 25 + ["b"] * 25, "image_id": list("cd" * 25)},
+        obs={"cell_type": cell_type, "image_id": image_id},
         obsm={"spatial_init": coordinates},
     )
     a2d = ann2data.Ann2DataByCategory(
-        fields={"x": ["X"], "edge_index": ["uns/edge_index"], "edge_weight": ["uns/edge_weight"]},
+        fields={
+            "x": ["X"],
+            "obs_names": ["obs_names"],
+            "var_names": ["var_names"],
+            "edge_index": ["uns/edge_index"],
+            "edge_weight": ["uns/edge_weight"],
+            "y": ["obs/cell_type"],
+        },
         category="cell_type",
         preprocess=transforms.Categorize(keys=["cell_type", "image_id"]),
         transform=transforms.AddEdgeIndex(
@@ -30,7 +44,7 @@ def test_sample_case_ann2data_basic():
         ),
     )
     datas = list(a2d(adata_gt.copy()))
-    assert len(datas) == 2
+    assert len(datas) == 4
     big_adata_tf = transforms.Compose(
         [
             transforms.Categorize(keys=["cell_type", "image_id"]),
@@ -48,11 +62,13 @@ def test_sample_case_ann2data_basic():
     assert torch.allclose(torch.cat([d.x for d in datas]), torch.from_numpy(big_adata.X).to(torch.float))
     assert sum([d.edge_index.shape[1] for d in datas]) == big_adata.uns["edge_index"].shape[1]
     adatas = list(iterables.ToCategoryIterator(category="cell_type")(big_adata))
-    assert np.allclose(
-        np.array(adatas[0].obsp["graph_distances"].todense()),
-        np.array(big_adata.obsp["graph_distances"][0:25, 0:25].todense()),
-    )
-    assert np.allclose(
-        np.array(adatas[1].obsp["graph_distances"].todense()),
-        np.array(big_adata.obsp["graph_distances"][25:, 25:].todense()),
-    )
+    assert len(adatas) == 4
+    # this line is the for loop version of the last two assertions
+
+    for a in adatas:
+        ct = a.obs["cell_type"].values[0]
+        ct_idx = np.where(np.array(cell_type) == ct)[0]
+        np.allclose(
+            a.obsp["graph_distances"].todense(),
+            big_adata.obsp["graph_distances"][ct_idx, :][:, ct_idx].todense(),
+        )

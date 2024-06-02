@@ -62,7 +62,7 @@ def test_add_edge_index():
     tf = transforms.AddEdgeIndex(
         spatial_key="spatial_init",
         key_added="pred",
-        func_args={"radius": median_dist, "n_neighs": 4},
+        func_args={"radius": median_dist, "n_neighs": 4, "coord_type": "generic"},
         edge_index_key="edge_index",
         edge_weight_key="edge_weight",
         gets_connectivities=False, # gets distances

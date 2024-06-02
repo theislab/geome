@@ -21,6 +21,11 @@ def get_from_loc(adata: AnnData, location: str) -> Any:
     """
     if location == "X":
         return adata.X
+    elif location == "obs_names":
+        return adata.obs_names.to_numpy()
+    elif location == "var_names":
+        return adata.var_names.to_numpy()
+
     assert len(location.split("/")) == 2, f"Location must have only one delimiter {location}"
     axis, key = location.split("/")
 
