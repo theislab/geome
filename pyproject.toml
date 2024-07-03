@@ -7,7 +7,7 @@ name = "geome"
 version = "0.0.2"
 description = "Geometric Learning for Genome Data"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
     {name = "Marcella Toth"},
@@ -22,7 +22,7 @@ urls.Source = "https://github.com/theislab/geome"
 urls.Home-page = "https://github.com/theislab/geome"
 dependencies = [
     "anndata",
-    "torch",
+    "torch>=2.1.0",
     "torch_geometric",
     "torch_sparse",
     "torch_cluster",
@@ -48,7 +48,7 @@ doc = [
     "furo",
     "sphinx>=4",
     "sphinx-book-theme>=1.0.0",
-    "myst-nb",
+    "myst-nb>=1.1.0",
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",
     # For notebooks
@@ -117,7 +117,7 @@ ignore = [
     "D107",
     # Errors from function calls in argument defaults. These are fine when the result is immutable.
     "B008",
-    # __magic__ methods are are often self-explanatory, allow missing docstrings
+    # __magic__ methods are often self-explanatory, allow missing docstrings
     "D105",
     # first line should end with a period [Bug: doesn't work with single-line docstrings]
     "D400",
