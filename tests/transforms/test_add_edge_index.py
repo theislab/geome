@@ -78,4 +78,4 @@ def test_add_edge_index():
     adata = tf(adata)
     assert torch.equal(adata.uns["edge_index"], edge_index_gt)
     assert torch.allclose(adata.uns["edge_weight"], edge_weight_gt)
-    assert np.allclose(adata.obsp["pred_distances"].A, adata.obsp["gt_distances"].A)
+    assert np.allclose(adata.obsp["pred_distances"].toarray(), adata.obsp["gt_distances"].toarray())
