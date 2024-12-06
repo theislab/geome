@@ -18,6 +18,7 @@ class Ann2DataAbstract(ABC):
         adata2iterable: Callable[[AnnData], Iterable[AnnData]] | None = None,
         preprocess: Callable[[AnnData], AnnData] | None = None,
         transform: Callable[[AnnData], AnnData] | None = None,
+        save_preprocessed_adata: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -37,6 +38,7 @@ class Ann2DataAbstract(ABC):
         self._preprocess = preprocess
         self.fields = fields
         self._transform = transform
+        self.save_preprocessed_adata = save_preprocessed_adata
 
     @abstractmethod
     def merge_field(self, adata: AnnData, field: str, locations: list[str]) -> torch.Tensor:
@@ -82,6 +84,7 @@ class Ann2DataAbstract(ABC):
         PyTorch Geometric compatible data object.
 
         """
+        print("call new")
         # do the given preprocessing steps.
         if self._preprocess is not None:
             adata = self._preprocess(adata)
@@ -91,10 +94,17 @@ class Ann2DataAbstract(ABC):
             adata_iter = self._adata2iterable(adata)
 
         # iterate trough adata.
+        data_objects = []
         for subadata in adata_iter:
             if self._transform is not None:
                 subadata = self._transform(subadata)
-            yield self.create_data_obj(subadata)
+            data_objects.append(self.create_data_obj(subadata))
+
+        # Return the data objects and adata or None
+        if self.save_preprocessed_adata:
+            return data_objects, adata
+        else:
+            return data_objects, None
 
     def to_list(self, adata: AnnData | Iterable[AnnData]) -> list[Data]:
         """Convert an AnnData object to a list of PyTorch compatible data objects.

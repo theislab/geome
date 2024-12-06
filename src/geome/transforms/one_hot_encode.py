@@ -65,4 +65,6 @@ class SaveOneHotEncodeLabels(Transform):
         getattr(adata, matrix_key)[self.key_added] = pd.DataFrame(encoded_data_combined)
         adata.uns[f"{self.key_added}_mappings"] = label_mappings
 
+        print(label_mappings)
+
         return adata
