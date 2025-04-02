@@ -1,0 +1,43 @@
+{
+  "template": "https://github.com/scverse/cookiecutter-scverse",
+  "commit": "94ef9fb6f9ad8cfe65a3d9575679c03c80c49cd1",
+  "checkout": "v0.5.0",
+  "context": {
+    "cookiecutter": {
+      "project_name": "geome",
+      "package_name": "geome",
+      "project_description": "The repo provides a set of tools for creating PyTorch Geometric (PyG) data objects from AnnData objects, which are commonly used for storing and manipulating single-cell genomics data. In addition, the repo includes functionality for creating PyTorch Lightning (PyTorch-Lightning) DataModule objects from the PyG data objects, which can be used to create graph neural network (GNN) data pipelines. The PyG data objects represent graphs, where the nodes represent cells and the edges represent relationships between the cells, and can be used to perform GNN tasks such as node classification, graph classification, and link prediction. The repo is written in Python and utilizes the PyTorch, PyTorch Geometric, and PyTorch-Lightning libraries.",
+      "author_full_name": "Marcella Toth",
+      "author_email": "toth.marcella@gmail.com",
+      "github_user": "tothmarcella",
+      "github_repo": "geome",
+      "license": "MIT License",
+      "ide_integration": true,
+      "_copy_without_render": [
+        ".github/workflows/build.yaml",
+        ".github/workflows/test.yaml",
+        "docs/_templates/autosummary/**.rst"
+      ],
+      "_exclude_on_template_update": [
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md",
+        "docs/api.md",
+        "docs/index.md",
+        "docs/notebooks/example.ipynb",
+        "docs/references.bib",
+        "docs/references.md",
+        "src/**",
+        "tests/**"
+      ],
+      "_render_devdocs": false,
+      "_jinja2_env_vars": {
+        "lstrip_blocks": true,
+        "trim_blocks": true
+      },
+      "_template": "https://github.com/scverse/cookiecutter-scverse",
+      "_commit": "94ef9fb6f9ad8cfe65a3d9575679c03c80c49cd1"
+    }
+  },
+  "directory": null
+}
