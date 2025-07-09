@@ -26,7 +26,7 @@ class ToCategoryIterator(ToIterable):
 
     category: str
     axis: Literal[0, 1, "obs", "var"] = "obs"
-    preserve_categories: Optional[list[str]] = None
+    preserve_categories: Optional[list[str]] = []
 
     def __post_init__(self):
         if self.axis not in (0, 1, "obs", "var"):
