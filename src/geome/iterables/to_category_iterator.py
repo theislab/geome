@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Callable, Literal, Optional
 
 from anndata import AnnData
 
@@ -21,12 +21,12 @@ class ToCategoryIterator(ToIterable):
     axis (int | str): The axis along which to iterate over the categories. Can be either 0, 1, "obs" or "var".
         0 or "obs" means the categories are in the observation axis.
         1 or "var" means the categories are in the variable axis.
-    preserve_categories (bool): Preserves the categories in the resulting AnnData obs and var Series if `preserve_categories` is True.
+    preserve_categories (list): If not None, preserves the indicated categories from the Anndata 'obs' and 'var'
     """
 
     category: str
     axis: Literal[0, 1, "obs", "var"] = "obs"
-    preserve_categories: bool = True
+    preserve_categories: Optional[list[str]] = []
 
     def __post_init__(self):
         if self.axis not in (0, 1, "obs", "var"):
@@ -51,13 +51,15 @@ class ToCategoryIterator(ToIterable):
         cats_df = get_from_loc(adata, f"{self.axis}/{self.category}")
         cats = cats_df.dtypes.categories
         preserved_categories = {"obs": {}, "var": {}}
-        if self.preserve_categories:
-            for axis in ("obs", "var"):
-                adata_axis = getattr(adata, axis)
-                if adata_axis is not None:
-                    for key in adata_axis.keys():
-                        if adata_axis[key].dtype.name == "category":
-                            preserved_categories[axis][key] = adata_axis[key].cat.categories
+
+        if self.preserve_categories is not None:
+            for key in self.preserve_categories:
+                for axis in ("obs", "var"):
+                    adata_axis = getattr(adata, axis)
+                    if adata_axis is not None:
+                        if key in adata_axis.keys():
+                            if adata_axis[key].dtype.name == "category":
+                                preserved_categories[axis][key] = adata_axis[key].cat.categories
 
         for cat in cats:
             # TODO(syelman): is this wise? Maybe create copy only if preserve_categories is True?

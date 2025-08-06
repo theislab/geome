@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,8 @@ class Ann2DataBasic(Ann2DataAbstract):
         adata2iter: Callable[[AnnData], AnnData] | None = None,
         preprocess: list[Callable[[AnnData], AnnData]] | None = None,
         transform: list[Callable[[AnnData], AnnData]] | None = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """Convert anndata object into a dictionary of arrays.
 
@@ -46,7 +48,7 @@ class Ann2DataBasic(Ann2DataAbstract):
         transform: List of functions to transform the AnnData object after preprocessing.
         edge_index_key: Key for the edge index in the converted data. Defaults to 'edge_index'.
         """
-        super().__init__(fields, adata2iter, preprocess, transform)
+        super().__init__(fields, adata2iter, preprocess, transform, *args, **kwargs)
 
         self._preprocess = preprocess
         self._transform = transform

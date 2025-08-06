@@ -4,6 +4,7 @@ from .add_edge_index import AddEdgeIndex, AddEdgeIndexFromAdj
 from .base.transform import Transform
 from .categorize import Categorize
 from .compose import Compose
+from .one_hot_encode import SaveOneHotEncodeLabels
 from .subset import Subset
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "AddEdgeIndex",
     "AddEdgeIndexFromAdj",
     "Subset",
+    "SaveOneHotEncodeLabels",
 ]
