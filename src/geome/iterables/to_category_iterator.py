@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, Optional
 
 from anndata import AnnData
@@ -26,7 +26,7 @@ class ToCategoryIterator(ToIterable):
 
     category: str
     axis: Literal[0, 1, "obs", "var"] = "obs"
-    preserve_categories: Optional[list[str]] = []
+    preserve_categories: list = field(default_factory=list)
 
     def __post_init__(self):
         if self.axis not in (0, 1, "obs", "var"):
