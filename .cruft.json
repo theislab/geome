@@ -1,7 +1,7 @@
 {
   "template": "https://github.com/scverse/cookiecutter-scverse",
-  "commit": "586b1652162ff7994b0070a034023d64289ae416",
-  "checkout": "v0.3.1",
+  "commit": "6ff5b92b5d44ea6d8a88e47538475718d467db95",
+  "checkout": "v0.7.0",
   "context": {
     "cookiecutter": {
       "project_name": "geome",
@@ -10,19 +10,33 @@
       "author_full_name": "Marcella Toth",
       "author_email": "toth.marcella@gmail.com",
       "github_user": "tothmarcella",
-      "project_repo": "https://github.com/theislab/geome",
+      "github_repo": "geome",
       "license": "MIT License",
+      "ide_integration": true,
       "_copy_without_render": [
         ".github/workflows/build.yaml",
         ".github/workflows/test.yaml",
         "docs/_templates/autosummary/**.rst"
+      ],
+      "_exclude_on_template_update": [
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md",
+        "docs/api.md",
+        "docs/index.md",
+        "docs/notebooks/example.ipynb",
+        "docs/references.bib",
+        "docs/references.md",
+        "src/**",
+        "tests/**"
       ],
       "_render_devdocs": false,
       "_jinja2_env_vars": {
         "lstrip_blocks": true,
         "trim_blocks": true
       },
-      "_template": "https://github.com/scverse/cookiecutter-scverse"
+      "_template": "https://github.com/scverse/cookiecutter-scverse",
+      "_commit": "6ff5b92b5d44ea6d8a88e47538475718d467db95"
     }
   },
   "directory": null

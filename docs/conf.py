@@ -1,38 +1,36 @@
-import sys
-from datetime import datetime
-from pathlib import Path
-
 # Configuration file for the Sphinx documentation builder.
-#
+
 # This file only contains a selection of the most common options. For a full
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
+import shutil
+import sys
+from datetime import datetime
+from importlib.metadata import metadata
+from pathlib import Path
+
+from sphinxcontrib import katex
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "extensions"))
 
 
-# Mock imports
-autodoc_mock_imports = ["torch", "torch_geometric", "squidpy", "pytorch_lightning"]
-
-
 # -- Project information -----------------------------------------------------
+
 # NOTE: If you installed your project in editable mode, this might be stale.
 #       If this is the case, reinstall it to refresh the metadata
-# info = metadata("geome")
-# project_name = info["Name"]
-project_name = "geome"
-# author = info["Author"]
-author = "Selman Ozleyen, Chelsea Bright, Marcella Toth"
+info = metadata("geome")
+project = info["Name"]
+author = info["Author"]
 copyright = f"{datetime.now():%Y}, {author}."
-# version = info["Version"]
-version = "0.1"
-repository_url = "https://github.com/theislab/geome"
+version = info["Version"]
+urls = dict(pu.split(", ") for pu in info.get_all("Project-URL"))
+repository_url = urls["Source"]
 
 # The full version, including alpha/beta/rc tags
-# release = info["Version"]
+release = info["Version"]
 
 bibtex_bibfiles = ["references.bib"]
 templates_path = ["_templates"]
@@ -41,10 +39,10 @@ needs_sphinx = "4.0"
 
 html_context = {
     "display_github": True,  # Integrate GitHub
-    "github_user": "tothmarcella",  # Username
-    "github_repo": project_name,  # Repo name
-    "github_version": "main",  # Version
-    "conf_py_path": "/docs/",  # Path in the checkout to the docs root
+    "github_user": "tothmarcella",
+    "github_repo": project,
+    "github_version": "main",
+    "conf_py_path": "/docs/",
 }
 
 # -- General configuration ---------------------------------------------------
@@ -53,14 +51,15 @@ html_context = {
 # They can be extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "myst_nb",
-    # "sphinx_copybutton",
+    "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinxcontrib.bibtex",
+    "sphinxcontrib.katex",
     "sphinx_autodoc_typehints",
-    "sphinx.ext.mathjax",
+    "sphinx_tabs.tabs",
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinxext.opengraph",
     *[p.stem for p in (HERE / "extensions").glob("*.py")],
@@ -86,7 +85,6 @@ myst_enable_extensions = [
 myst_url_schemes = ("http", "https", "mailto")
 nb_output_stderr = "remove"
 nb_execution_mode = "off"
-nbsphinx_execute = "never"
 nb_merge_streams = True
 typehints_defaults = "braces"
 
@@ -97,8 +95,10 @@ source_suffix = {
 }
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
+    # TODO: replace `3.13` with `3` once ReadTheDocs supports building with Python 3.14
+    "python": ("https://docs.python.org/3.13", None),
     "anndata": ("https://anndata.readthedocs.io/en/stable/", None),
+    "scanpy": ("https://scanpy.readthedocs.io/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
 }
 
@@ -113,10 +113,11 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
-html_title = project_name
+
+html_title = project
 
 html_theme_options = {
     "repository_url": repository_url,
@@ -126,6 +127,7 @@ html_theme_options = {
 }
 
 pygments_style = "default"
+katex_prerender = shutil.which(katex.NODEJS_BINARY) is not None
 
 nitpick_ignore = [
     # If building the documentation fails because of a missing link that is outside your control,
