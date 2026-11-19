@@ -39,12 +39,20 @@ dependencies = [
   "pytorch_lightning",
   "session-info",
 ]
+# geome.tiles: out-of-core tiles. anndata.acc references and scfit's backed opener (scfit PR #31, not released yet).
+optional-dependencies.tiles = [
+  "anndata>=0.13",
+  "scfit @ git+https://github.com/selmanozleyen/scfit@feat/open-adata",
+]
 urls.Documentation = "https://geome.readthedocs.io/"
 urls.Homepage = "https://github.com/theislab/geome"
 urls.Source = "https://github.com/theislab/geome"
 
 [tool.hatch.version]
 source = "vcs"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/geome/_version.py"
@@ -142,6 +150,7 @@ lint.ignore = [
 lint.per-file-ignores."*/__init__.py" = [ "F401" ]
 lint.per-file-ignores."docs/*" = [ "I" ]
 lint.per-file-ignores."tests/*" = [ "D" ]
+lint.per-file-ignores."scripts/*" = [ "D" ]
 lint.pydocstyle.convention = "numpy"
 
 [tool.pytest]

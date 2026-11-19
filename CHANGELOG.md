@@ -13,3 +13,5 @@ and this project adheres to [Semantic Versioning][].
 ### Added
 
 -   Basic tool, preprocessing and plotting functions
+-   `geome.tiles`: out-of-core spatial tiles with a neighbour margin as PyG `Data`, exact for GCNs up to
+    `n_hops` layers (extra `tiles`)
